@@ -13,7 +13,7 @@ class module extends Model
         'name',
         'description',
         'icon',
-        'path',
+        'img',
         'src',
         'sequence',
         'is_active',
@@ -22,5 +22,13 @@ class module extends Model
     public function accessRights()
     {
         return $this->hasMany(access_right::class);
+    }
+
+    public function subModules()
+    {
+        return $this->hasMany(sub_module::class)
+            ->where('is_active', 1)
+            ->orderBy('group')
+            ->orderBy('sequence');
     }
 }

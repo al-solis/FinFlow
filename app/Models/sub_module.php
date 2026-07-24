@@ -13,8 +13,10 @@ class sub_module extends Model
         'code',
         'name',
         'description',
+        'group',
         'icon',
         'img',
+        'src',
         'sequence',
         'is_active',
     ];
@@ -22,5 +24,10 @@ class sub_module extends Model
     public function module()
     {
         return $this->belongsTo(module::class);
+    }
+
+    public function getRouteNameAttribute()
+    {
+        return strtolower(str_replace('-', '.', $this->name));
     }
 }

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     /**
@@ -28,6 +29,32 @@ return new class extends Migration {
             $table->foreign('updated_by')->references('id')->on('users');
             $table->timestamps();
         });
+
+        DB::table('access_rights')->insertUsing(
+            [
+                'role_id',
+                'module_id',
+                'sub_module_id',
+                'can_create',
+                'can_read',
+                'can_update',
+                'can_delete',
+                'created_by',
+                'created_at',
+            ],
+            DB::table('sub_modules')->selectRaw(
+                '1,
+                module_id,
+                id,
+                1,
+                1,
+                1,
+                1,
+                1,
+                ?',
+                [now()]
+            )
+        );
     }
 
     /**

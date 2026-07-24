@@ -30,16 +30,55 @@
                         alt="external-Approved-start-up-beshi-glyph-kerismaker" />
                     <span class="text-xs mt-1">My Requests</span>
                 </a>
-                @foreach ($modules as $module)
+                {{-- @foreach ($modules as $module)
                     <a href="" title ="{{ $module->description }}"
                         class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-sm text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200">
-                        {{-- <img src="{{ asset('images/to-do.gif') }}" alt="My Requests" class="w-12 h-12 object-contain"> --}}
-                        <i class={{ $module->icon }}></i>
                         <img width="32" height="32" src="{{ asset('icons/' . $module->path) }}"
                             alt="{{ $module->name }}" />
                         <span class="text-xs mt-1">{{ $module->name }}</span>
                     </a>
+                @endforeach --}}
+
+                @foreach ($modules as $module)
+                    <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                        <button type="button" @click="open = !open" title="{{ $module->description }}"
+                            class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-sm text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700 hover:bg-gray-200">
+                            <img width="32" height="32" src="{{ asset('icons/' . $module->img) }}"
+                                alt="{{ $module->name }}" />
+                            <span class="text-xs mt-1">{{ $module->name }}</span>
+                        </button>
+
+                        @if ($module->subModules->count())
+                            <div x-show="open" x-transition
+                                class="absolute left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1"
+                                style="display: none;">
+                                @foreach ($module->subModules->groupBy('group') as $groupName => $subs)
+                                    @if (!$loop->first)
+                                        <div class="my-1 border-t border-gray-200"></div>
+                                    @endif
+
+                                    @if (!blank($groupName))
+                                        <div
+                                            class="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                                            {{ $groupName }}
+                                        </div>
+                                    @endif
+
+                                    @foreach ($subs as $sub)
+                                        <a href="{{ Route::has($sub->route_name) ? route($sub->route_name) : '#' }}"
+                                            title="{{ $sub->description }}"
+                                            class="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-100 hover:text-cyan-700 {{ Route::has($sub->code) ? '' : 'opacity-50 cursor-not-allowed' }}">
+                                            <img width="20" height="20" src="{{ asset('icons/' . $sub->img) }}"
+                                                alt="{{ $sub->name }}" class="flex-shrink-0" />
+                                            <span>{{ $sub->name }}</span>
+                                        </a>
+                                    @endforeach
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 @endforeach
+
                 {{-- <a href="" title="Request for disbursement"
                     class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-sm text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200">
                     <img width="48" height="48" src="https://img.icons8.com/color/48/budget.png"
@@ -80,7 +119,7 @@
                         alt="external-Up-round-icons-others-inmotus-design-28" />
                     Reimbursement
                 </a> --}}
-                <a class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-sm text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200"
+                <a class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-xs text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200"
                     href="">
                     <img width="32" height="32"
                         src="https://img.icons8.com/fluency/48/pie-chart-report-script.png"
@@ -89,7 +128,7 @@
                 </a>
                 @if (Auth::user()->role_id == '1')
                     <a href="{{ route('setup.index') }}"
-                        class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-sm text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200">
+                        class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-xs text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200">
                         <img width="32" height="32" src="https://img.icons8.com/bubbles/100/settings.png"
                             alt="settings" />
                         Setup
