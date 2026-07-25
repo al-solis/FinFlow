@@ -67,7 +67,7 @@
                                     @foreach ($subs as $sub)
                                         <a href="{{ Route::has($sub->route_name) ? route($sub->route_name) : '#' }}"
                                             title="{{ $sub->description }}"
-                                            class="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-100 hover:text-cyan-700 {{ Route::has($sub->code) ? '' : 'opacity-50 cursor-not-allowed' }}">
+                                            class="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-100 hover:text-cyan-700 {{ Route::has($sub->route_name) ? '' : 'opacity-50 cursor-not-allowed' }}">
                                             <img width="20" height="20" src="{{ asset('icons/' . $sub->img) }}"
                                                 alt="{{ $sub->name }}" class="flex-shrink-0" />
                                             <span>{{ $sub->name }}</span>
@@ -126,14 +126,14 @@
                         alt="pie-chart-report-script" />
                     Reports
                 </a>
-                @if (Auth::user()->role_id == '1')
+                {{-- @if (Auth::user()->role_id == '1')
                     <a href="{{ route('setup.index') }}"
                         class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-xs text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200">
                         <img width="32" height="32" src="https://img.icons8.com/bubbles/100/settings.png"
                             alt="settings" />
                         Setup
                     </a>
-                @endif
+                @endif --}}
             </div>
         </div>
     </x-slot>

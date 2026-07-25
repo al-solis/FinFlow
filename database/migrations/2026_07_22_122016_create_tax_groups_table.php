@@ -14,6 +14,8 @@ return new class extends Migration {
             $table->id();
             $table->string('code', 20)->unique();
             $table->string('name', 100);
+            $table->text('description')->nullable();
+            $table->integer('status')->default(1); // 0 = Inactive, 1 = Active
             $table->unsignedBigInteger('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users');
             $table->unsignedBigInteger('updated_by')->nullable();

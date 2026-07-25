@@ -11,6 +11,8 @@ class tax_group extends Model
     protected $fillable = [
         'code',
         'name',
+        'description',
+        'status',
         'created_by',
         'updated_by'
     ];

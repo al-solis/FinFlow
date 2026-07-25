@@ -4,15 +4,15 @@
 
         {{-- Header --}}
         <div class="flex items-center justify-between">
+            <!-- Left: Title & Description -->
             <div>
-                <h1 class="text-2xl font-semibold text-gray-900">Segments</h1>
-                <p class="text-sm text-gray-500">
-                    Manage account segments<br>
-                    Example: <strong>Department, Cost Center, Company, Project, Branch, etc.</strong>
-                </p>
+                <h1 class="text-2xl font-semibold text-gray-900">Segment Management</h1>
+                <p class="text-sm text-gray-500">Manage {{ $segment->description }} segment accounts</p>
             </div>
+
+            <!-- Right: Buttons -->
             <div class="flex items-center gap-2 mt-0">
-                <a href="{{ route('setup.index') }}"
+                <a href="{{ route('gl.segments') }}"
                     class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray border border-gray-300 bg-gray-100 rounded-lg hover:bg-gray-200 ">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -25,27 +25,27 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Segment
+                    Add Account
                 </button>
             </div>
         </div>
 
-        {{-- Stats Cards --}}
-        {{-- @php
+        @php
             $cards = [
                 [
-                    'title' => 'Total Accounts',
-                    'value' => $totalAccounts,
-                    'color' => 'blue',
+                    'title' => 'Total ' . $segment->description,
+                    'value' => $segmentCodes->count(),
+                    'color' => 'orange',
                     'icon' => '
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-card-text text-blue-600" viewBox="0 0 16 16">
-                        <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z"/>
-                        <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5"/>
+                        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 7h18M3 12h18M3 17h18" />
                         </svg>',
                 ],
                 [
-                    'title' => 'Active Accounts',
-                    'value' => $activeAccounts,
+                    'title' => 'Active ' . $segment->description,
+                    'value' => $segmentCodes->where('status', 1)->count(),
                     'color' => 'green',
                     'icon' => '
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
@@ -55,18 +55,18 @@
                         </svg>',
                 ],
                 [
-                    'title' => 'Inactive Accounts',
-                    'value' => $inactiveAccounts,
+                    'title' => 'Inactive ' . $segment->description,
+                    'value' => $segmentCodes->where('status', 0)->count(),
                     'color' => 'red',
                     'icon' => '
-           <svg xmlns="http://www.w3.org/2000/svg"  width="16" height="16" fill="currentColor" class="bi bi-x-lg text-red-600" viewBox="0 0 16 16">
-            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
-            </svg>',
+                <svg xmlns="http://www.w3.org/2000/svg"  width="16" height="16" fill="currentColor" class="bi bi-x-lg text-red-600" viewBox="0 0 16 16">
+                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                    </svg>',
                 ],
             ];
-        @endphp --}}
+        @endphp
 
-        {{-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach ($cards as $card)
                 <div class="bg-white border rounded-xl p-4 flex items-center gap-4">
                     <div
@@ -83,7 +83,7 @@
                     </div>
                 </div>
             @endforeach
-        </div> --}}
+        </div>
 
         @if ($errors->any())
             <div id="alert-message"
@@ -110,19 +110,19 @@
         <form action="" method="GET">
             <div class="flex flex-col md:flex-row gap-2 text-xs md:text-sm">
                 <div class="md:w-2/3 w-full">
-                    <input type="text" id="search" name="search"
+                    <input type="text" id="simple-search" name="search"
                         placeholder="Search by name, code, or description..."
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                         value = "{{ request()->query('search') }}" oninput="this.form.submit()">
                 </div>
 
                 <div class="md:w-1/3 w-full">
-                    <select id="searchstatus" name="searchstatus"
+                    <select id="status" name="status"
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                         onchange="this.form.submit()">
                         <option value="">All Status</option>
-                        <option value="1" {{ request('searchstatus') === '1' ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ request('searchstatus') === '0' ? 'selected' : '' }}>Inactive</option>
+                        <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
+                        <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactive</option>
                     </select>
                 </div>
             </div>
@@ -135,43 +135,31 @@
             <table class="min-w-full text-xs">
                 <thead class="bg-gray-200 text-gray-600">
                     <tr>
-                        <th scope="col" class="px-4 py-3 text-left w-[100px]">Code</th>
+                        <th scope="col" class="px-4 py-3 text-left w-[80px]">Code</th>
+                        <th scope="col" class="px-4 py-3 text-left w-[150px]">Name</th>
                         <th scope="col" class="px-4 py-3 text-left w-[200px]">Description</th>
-                        <th scope="col" class="px-4 py-3 text-left w-[70px]">Length</th>
-                        <th scope="col" class="px-4 py-3 text-left w-[150px]">Accounts</th>
-                        <th scope="col" class="px-4 py-3 text-left w-[150px]">Status</th>
+                        <th scope="col" class="px-4 py-3 text-left w-[100px]">Status</th>
                         <th scope="col" class="px-4 py-3 text-center w-[50px]">Actions</th>
                     </tr>
                 </thead>
 
                 <tbody class="divide-y">
-                    @forelse($segments as $segment)
+                    @forelse($segmentCodes as $segmentCode)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 font-medium w-[100px]">{{ $segment->code }}</td>
-                            <td class="px-4 py-3 w-[200px]">{{ $segment->description }}</td>
-                            <td class="px-4 py-3 w-[70px]">{{ $segment->length }} digits</td>
-                            <td class="px-4 py-3 w-[150px]">
-                                <a href="{{ route('setup.chart.segment.segment_account.index', $segment->id) }}"
-                                    class="font-semibold text-gray-600 hover:underline"
-                                    title="View accounts for segment: {{ $segment->description }}">
-                                    ({{ $segment->segmentCodes->count() }})
-                                    accounts
-                                </a>
-                            </td>
-                            {{-- <td class="px-4 py-3 w-[150px]">
-                                <a href="{{ route('location.sublocation.index', $segment->id) }}"
-                                    class="font-semibold text-gray-600 hover:underline">
-                                    ({{ $segment->sublocations_count }})
-                                    sub-locations
-                                </a>
-                            </td> --}}
-                            <td class="px-4 py-3 w-[150px] text-xs font-semibold">
+                            <td class="px-4 py-3 font-medium w-[80px]">{{ $segmentCode->code }}</td>
+                            <td class="px-4 py-3 font-medium w-[150px]">{{ $segmentCode->name }}</td>
+                            <td class="px-4 py-3 w-[200px]">{{ $segmentCode->description }}</td>
+                            <td class="px-4 py-3 w-[100px] text-xs font-semibold">
                                 @php
                                     $statuses = [
                                         0 => ['color' => 'bg-red-100 text-red-600', 'label' => 'Inactive'],
                                         1 => ['color' => 'bg-green-100 text-green-700', 'label' => 'Active'],
+                                        2 => [
+                                            'color' => 'bg-yellow-100 text-yellow-700',
+                                            'label' => 'Under Maintenance',
+                                        ],
                                     ];
-                                    $status = $statuses[$segment->status] ?? [
+                                    $status = $statuses[$segmentCode->status] ?? [
                                         'color' => 'bg-gray-100 text-gray-600',
                                         'label' => 'Unknown',
                                     ];
@@ -183,12 +171,12 @@
                             </td>
                             <td class="px-4 py-3 w-[50px]">
                                 <div class="flex items-center justify-center space-x-2">
-                                    <button type="button" title="Edit segment: {{ $segment->description }}"
+                                    <button type="button" title="Edit account: {{ $segmentCode->name }}"
                                         data-modal-target="edit-modal" data-modal-toggle="edit-modal"
-                                        data-id="{{ $segment->id }}" data-code="{{ $segment->code }}"
-                                        data-description="{{ $segment->description }}"
-                                        data-length="{{ $segment->length }}" data-status="{{ $segment->status }}"
-                                        onclick="openEditModal(this)"
+                                        data-id="{{ $segmentCode->id }}" data-name="{{ $segmentCode->name }}"
+                                        data-code="{{ $segmentCode->code }}"
+                                        data-description="{{ $segmentCode->description }}"
+                                        data-status="{{ $segmentCode->status }}" onclick="openEditModal(this)"
                                         class="group flex space-x-1 text-gray-500 hover:text-blue-600 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                             fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
@@ -205,7 +193,7 @@
                     @empty
                         <tr>
                             <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                                No segments found.
+                                No {{ $segment->description }} found.
                             </td>
                         </tr>
                     @endforelse
@@ -215,12 +203,11 @@
         <!-- Pagination Links -->
         <div
             class="w-full md:w-auto text-xs flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0 mb-2">
-            {{ $segments->links() }}
+            {{ $segmentCodes->links() }}
         </div>
     </div>
 
-
-    <!-- Create segment modal -->
+    <!-- Create segment code modal -->
     <div id="add-modal" tabindex="-1" aria-hidden="true"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full">
         <div class="relative p-4 w-full max-w-md h-full md:h-auto">
@@ -229,7 +216,7 @@
                 <!-- Modal header -->
                 <div class="flex justify-between items-center pb-4 mb-2 rounded-t border-b sm:mb-5 dark:border-gray-600">
                     <h3 class="text-md font-semibold text-gray-900 dark:text-white">
-                        Add New Segment
+                        Add New {{ $segment->description }} Account
                     </h3>
                     <button type="button"
                         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -244,64 +231,64 @@
                     </button>
                 </div>
                 <!-- Modal body -->
-                <div class="overflow-y-auto max-h-[70vh]">
-                    <form action="{{ route('setup.chart.segment.store') }}" method="POST">
-                        @csrf
-                        <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
-                            <div class="md:col-span-1">
-                                <label for="Code"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Segment
-                                    Code*</label>
-                                <input type="text" name="code" id="code"
+                <form action="{{ route('gl.segments.segment_account.store', $segment->id) }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="location_id" value="{{ $segment->id }}">
+                    <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-1">
+                        <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-3">
+                            <div class="w-full md:col-span-1">
+                                <label for="code"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Code*</label>
+                                <input type="text" name="code" id="code" minlength="{{ $segment->length }}"
+                                    maxlength="{{ $segment->length }}" inputmode="numeric" pattern="[0-9]*"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. DPT, CC, COMP" required>
+                                    placeholder="e.g. 00, 001" required>
                             </div>
-
-                            <div class="sm:col-span-2">
-                                <label for="description"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Description*</label>
-                                <textarea type="text" name="description" id="description" rows="3"
+                            <div class="w-full md:col-span-2">
+                                <label for="name"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Name*</label>
+                                <input type="text" name="name" id="name" maxlength="60"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. Department, Cost Center, Company" required></textarea>
-                            </div>
-
-                            <div class="md:col-span-1">
-                                <label for="length"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Length*</label>
-                                <input type="number" name="length" id="length" min="1" max="20"
-                                    step="1"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="1" required>
-                            </div>
-
-                            <div class="md:col-span-1">
-                                <label for="status"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
-                                <select id="status" name="status"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    required>
-                                    {{-- <option selected="">Select product type</option> --}}
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
-                                </select>
+                                    placeholder="e.g. No Location, IT Department" required>
                             </div>
                         </div>
-                        <button type="submit"
-                            class="text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
-                            <svg class="mr-1 -ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd"
-                                    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            Add Segment
-                        </button>
-                    </form>
-                </div>
+                        <div class="sm:col-span-2">
+                            <label for="description"
+                                class="block text-xs font-medium text-gray-900 dark:text-white">Description*</label>
+                            <textarea type="text" name="description" id="description" rows="3" maxlength="120"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                placeholder="e.g. General account with no specific location, IT Department, etc." required></textarea>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="status"
+                                class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
+                            <select id="status" name="status"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                required>
+                                {{-- <option selected="">Select product type</option> --}}
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <button type="submit"
+                        class="text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                        <svg class="mr-1 -ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Add {{ $segment->description }} account
+                    </button>
+                </form>
             </div>
         </div>
     </div>
-    <!-- End create segment modal -->
+    <!-- End create segment code modal -->
 
     <!-- Modal  Edit-->
     <div id="edit-modal" tabindex="-1" aria-hidden="true"
@@ -313,7 +300,7 @@
                 <div
                     class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Update Segment
+                        Update {{ $segment->description }} Account
                     </h3>
                     <button type="button"
                         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -327,58 +314,58 @@
                     </button>
                 </div>
                 <!-- Modal body -->
-                <div class="overflow-y-auto max-h-[70vh]">
-                    <form id="editForm" class="p-4 md:p-5" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <input type="hidden" name="edit_id" id="edit_id">
-                        <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
-                            <div class="md:col-span-1">
+                <form id="editForm" class="p-4 md:p-5" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="edit_id" id="edit_id">
+                    <input type="hidden" name="segment_id" value="{{ $segment->id }}">
+
+                    <div class="grid ml-1 mr-1gap-2 mb-4 sm:grid-cols-1">
+                        <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-3">
+                            <div class="w-full md:col-span-1">
                                 <label for="edit_code"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Segment
-                                    Code*</label>
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Code*</label>
                                 <input type="text" name="edit_code" id="edit_code"
+                                    minlength="{{ $segment->length }}" maxlength="{{ $segment->length }}"
+                                    inputmode="numeric" pattern="[0-9]*"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. DPT, CC, COMP" required>
+                                    placeholder="e.g. HQ-MAIN-REC" required>
                             </div>
-
-                            <div class="sm:col-span-2">
-                                <label for="edit_description"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Description*</label>
-                                <textarea type="text" name="edit_description" id="edit_description" rows="3"
+                            <div class="w-full md:col-span-2">
+                                <label for="edit_name"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Name*</label>
+                                <input type="text" name="edit_name" id="edit_name" maxlength="60"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. Department, Cost Center, Company" required></textarea>
-                            </div>
-
-                            <div class="md:col-span-1">
-                                <label for="edit_length"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Length*</label>
-                                <input type="number" name="edit_length" id="edit_length" min="1" max="20"
-                                    step="1"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="1" required>
-                            </div>
-
-                            <div class="md:col-span-1">
-                                <label for="edit_status"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
-                                <select id="edit_status" name="edit_status"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    required>
-                                    {{-- <option selected="">Select product type</option> --}}
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
-                                </select>
+                                    placeholder="e.g. Ground Floor - Reception" required>
                             </div>
                         </div>
+                        <div class="sm:col-span-2">
+                            <label for="edit_description"
+                                class="block text-xs font-medium text-gray-900 dark:text-white">Description*</label>
+                            <textarea type="text" name="edit_description" id="edit_description" rows="3" maxlength="120"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                placeholder="Location description" required></textarea>
+                        </div>
 
-                        <button type="submit" @if (Auth::user()->role == 2) disabled @endif
-                            class="btn-Update mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 {{ Auth::user()->role == 2 ? ' cursor-not-allowed' : '' }}">
-                            {{-- <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> --}}
-                            Update Segment
-                        </button>
-                    </form>
-                </div>
+                        <div class="sm:col-span-2">
+                            <label for="edit_status"
+                                class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
+                            <select id="edit_status" name="edit_status"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                required>
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                        {{-- <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> --}}
+                        Update {{ $segment->description }} account
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -401,16 +388,15 @@
         });
 
         function openEditModal(button) {
+            const id = button.getAttribute('data-id');
+            document.getElementById('edit_id').value = button.getAttribute('data-id');
+            document.getElementById('edit_code').value = button.getAttribute('data-code');
+            document.getElementById('edit_name').value = button.getAttribute('data-name');
+            document.getElementById('edit_description').value = button.getAttribute('data-description');
+            document.getElementById('edit_status').value = button.getAttribute('data-status');
 
-            const id = button.dataset.id;
-
-            document.getElementById('edit_id').value = id;
-            document.getElementById('edit_code').value = button.dataset.code;
-            document.getElementById('edit_description').value = button.dataset.description;
-            document.getElementById('edit_length').value = button.getAttribute('data-length');
-            document.getElementById('edit_status').value = button.dataset.status;
-
-            document.getElementById('editForm').action = `/setup/chart/segment/${id}`;
+            const form = document.getElementById('editForm');
+            form.action = `/gl/chart/segment/segment_account/${id}`;
         }
     </script>
 @endsection

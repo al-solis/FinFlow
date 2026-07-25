@@ -15,6 +15,8 @@ return new class extends Migration {
             $table->id();
             $table->string('code', 20)->unique();
             $table->string('name', 100);
+            $table->text('description')->nullable();
+            $table->integer('status')->default(1); // 0 = Inactive, 1 = Active
             $table->unsignedBigInteger('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users');
             $table->unsignedBigInteger('updated_by')->nullable();
@@ -26,6 +28,8 @@ return new class extends Migration {
             [
                 'code' => 'VAT',
                 'name' => 'Value Added Tax',
+                'description' => 'A tax on the value added to goods and services at each stage of production or distribution.',
+                'status' => 1,
                 'created_by' => 1,
                 'updated_by' => 1,
                 'created_at' => now(),
@@ -34,6 +38,8 @@ return new class extends Migration {
             [
                 'code' => 'EWT',
                 'name' => 'Expanded Withholding Tax',
+                'description' => 'A tax on the expanded withholding of income.',
+                'status' => 1,
                 'created_by' => 1,
                 'updated_by' => 1,
                 'created_at' => now(),
@@ -42,6 +48,8 @@ return new class extends Migration {
             [
                 'code' => 'FWT',
                 'name' => 'Final Withholding Tax',
+                'description' => 'A tax on the final withholding of income.',
+                'status' => 1,
                 'created_by' => 1,
                 'updated_by' => 1,
                 'created_at' => now(),
@@ -50,6 +58,8 @@ return new class extends Migration {
             [
                 'code' => 'LT',
                 'name' => 'Local Tax',
+                'description' => 'A tax on local transactions.',
+                'status' => 1,
                 'created_by' => 1,
                 'updated_by' => 1,
                 'created_at' => now(),
@@ -57,7 +67,9 @@ return new class extends Migration {
             ],
             [
                 'code' => 'DST',
-                'name' => 'Documentaty Stamp Tax',
+                'name' => 'Documentary Stamp Tax',
+                'description' => 'A tax on documents.',
+                'status' => 1,
                 'created_by' => 1,
                 'updated_by' => 1,
                 'created_at' => now(),

@@ -44,7 +44,7 @@ class AccountSubcategoryController extends Controller
                 'searchstatus' => $searchstatus,
             ]);
 
-        return view('setup.chart.subcategory.index', compact('totalSubCategories', 'activeSubCategories', 'inactiveSubCategories', 'subcategories', 'accountSubcategories', 'accountCategories'));
+        return view('gl.chart.subcategory.index', compact('totalSubCategories', 'activeSubCategories', 'inactiveSubCategories', 'subcategories', 'accountSubcategories', 'accountCategories'));
     }
 
     public function store(Request $request)
@@ -63,7 +63,7 @@ class AccountSubcategoryController extends Controller
             'created_at' => now()
         ]);
 
-        return redirect()->route('setup.chart.subcategory.index')->with('success', 'Account sub-category successfully created.');
+        return redirect()->route('gl.chart.subcategory.index')->with('success', 'Account sub-category successfully created.');
     }
 
     public function update(Request $request, $id)
@@ -83,6 +83,6 @@ class AccountSubcategoryController extends Controller
             'updated_at' => now()
         ]);
 
-        return redirect()->route('setup.chart.subcategory.index')->with('success', 'Account sub-category successfully updated.');
+        return redirect()->route('gl.chart.subcategory.index')->with('success', 'Account sub-category successfully updated.');
     }
 }

@@ -4,15 +4,14 @@
 
         {{-- Header --}}
         <div class="flex items-center justify-between">
-            <!-- Left: Title & Description -->
             <div>
-                <h1 class="text-2xl font-semibold text-gray-900">Segment Management</h1>
-                <p class="text-sm text-gray-500">Manage {{ $segment->description }} segment accounts</p>
+                <h1 class="text-2xl font-semibold text-gray-900">Tax Types</h1>
+                <p class="text-sm text-gray-500">
+                    Manage tax types
+                </p>
             </div>
-
-            <!-- Right: Buttons -->
             <div class="flex items-center gap-2 mt-0">
-                <a href="{{ route('setup.chart.segment.index') }}"
+                <a href=""
                     class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray border border-gray-300 bg-gray-100 rounded-lg hover:bg-gray-200 ">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -25,27 +24,26 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Account
+                    Add Tax Type
                 </button>
             </div>
         </div>
 
-        @php
+        {{-- Stats Cards --}}
+        {{-- @php
             $cards = [
                 [
-                    'title' => 'Total ' . $segment->description,
-                    'value' => $segmentCodes->count(),
-                    'color' => 'orange',
+                    'title' => 'Total Categories',
+                    'value' => $totalCategories,
+                    'color' => 'blue',
                     'icon' => '
-                        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" stroke-width="2"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 7h18M3 12h18M3 17h18" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class = "w-5 h-5 text-blue-600" width="16" height="16" fill="currentColor" class="bi bi-grid-3x3-gap" viewBox="0 0 16 16">
+                        <path d="M4 2v2H2V2zm1 12v-2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0-5V7a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0-5V2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m5 10v-2a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0-5V7a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0-5V2a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1M9 2v2H7V2zm5 0v2h-2V2zM4 7v2H2V7zm5 0v2H7V7zm5 0h-2v2h2zM4 12v2H2v-2zm5 0v2H7v-2zm5 0v2h-2v-2zM12 1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm-1 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zm1 4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1z"/>
                         </svg>',
                 ],
                 [
-                    'title' => 'Active ' . $segment->description,
-                    'value' => $segmentCodes->where('status', 1)->count(),
+                    'title' => 'Active',
+                    'value' => $activeCategories,
                     'color' => 'green',
                     'icon' => '
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
@@ -55,13 +53,13 @@
                         </svg>',
                 ],
                 [
-                    'title' => 'Inactive ' . $segment->description,
-                    'value' => $segmentCodes->where('status', 0)->count(),
+                    'title' => 'Inactive',
+                    'value' => $inactiveCategories,
                     'color' => 'red',
                     'icon' => '
-                <svg xmlns="http://www.w3.org/2000/svg"  width="16" height="16" fill="currentColor" class="bi bi-x-lg text-red-600" viewBox="0 0 16 16">
-                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
-                    </svg>',
+                        <svg class="w-5 h-5 text-red-600" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                        </svg>',
                 ],
             ];
         @endphp
@@ -83,11 +81,10 @@
                     </div>
                 </div>
             @endforeach
-        </div>
+        </div> --}}
 
         @if ($errors->any())
-            <div id="alert-message"
-                class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 pt-1">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 pt-1">
                 <ul>
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -95,15 +92,16 @@
                 </ul>
             </div>
         @elseif (session('success'))
-            <div id="alert-message"
-                class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 pt-1"
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 pt-1"
                 data-success="true">
                 {{ session('success') }}
             </div>
-        @elseif(session('error'))
-            <div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                {{ session('error') }}
-            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Clear form fields after successful submission
+                    clearModalFields();
+                });
+            </script>
         @endif
 
         {{-- Filters --}}
@@ -111,18 +109,18 @@
             <div class="flex flex-col md:flex-row gap-2 text-xs md:text-sm">
                 <div class="md:w-2/3 w-full">
                     <input type="text" id="simple-search" name="search"
-                        placeholder="Search by name, code, or description..."
+                        placeholder="Search by code, name or description..."
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                         value = "{{ request()->query('search') }}" oninput="this.form.submit()">
                 </div>
 
                 <div class="md:w-1/3 w-full">
-                    <select id="status" name="status"
+                    <select id="searchstatus" name="searchstatus"
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                         onchange="this.form.submit()">
                         <option value="">All Status</option>
-                        <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactive</option>
+                        <option value="1" {{ request('searchstatus') === '1' ? 'selected' : '' }}>Active</option>
+                        <option value="0" {{ request('searchstatus') === '0' ? 'selected' : '' }}>Inactive</option>
                     </select>
                 </div>
             </div>
@@ -144,22 +142,18 @@
                 </thead>
 
                 <tbody class="divide-y">
-                    @forelse($segmentCodes as $segmentCode)
+                    @forelse($taxTypes as $taxType)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 font-medium w-[80px]">{{ $segmentCode->code }}</td>
-                            <td class="px-4 py-3 font-medium w-[150px]">{{ $segmentCode->name }}</td>
-                            <td class="px-4 py-3 w-[200px]">{{ $segmentCode->description }}</td>
+                            <td class="px-4 py-3 w-[80px]">{{ $taxType->code }}</td>
+                            <td class="px-4 py-3 w-[150px]">{{ $taxType->name }}</td>
+                            <td class="px-4 py-3 w-[200px]">{{ $taxType->description }}</td>
                             <td class="px-4 py-3 w-[100px] text-xs font-semibold">
                                 @php
                                     $statuses = [
                                         0 => ['color' => 'bg-red-100 text-red-600', 'label' => 'Inactive'],
                                         1 => ['color' => 'bg-green-100 text-green-700', 'label' => 'Active'],
-                                        2 => [
-                                            'color' => 'bg-yellow-100 text-yellow-700',
-                                            'label' => 'Under Maintenance',
-                                        ],
                                     ];
-                                    $status = $statuses[$segmentCode->status] ?? [
+                                    $status = $statuses[$taxType->status] ?? [
                                         'color' => 'bg-gray-100 text-gray-600',
                                         'label' => 'Unknown',
                                     ];
@@ -171,12 +165,11 @@
                             </td>
                             <td class="px-4 py-3 w-[50px]">
                                 <div class="flex items-center justify-center space-x-2">
-                                    <button type="button" title="Edit account: {{ $segmentCode->name }}"
+                                    <button type="button" title="Edit tax type {{ $taxType->name }}"
                                         data-modal-target="edit-modal" data-modal-toggle="edit-modal"
-                                        data-id="{{ $segmentCode->id }}" data-name="{{ $segmentCode->name }}"
-                                        data-code="{{ $segmentCode->code }}"
-                                        data-description="{{ $segmentCode->description }}"
-                                        data-status="{{ $segmentCode->status }}" onclick="openEditModal(this)"
+                                        data-id="{{ $taxType->id }}" data-name="{{ $taxType->name }}"
+                                        data-code="{{ $taxType->code }}" data-description="{{ $taxType->description }}"
+                                        data-status="{{ $taxType->status }}" onclick="openEditModal(this)"
                                         class="group flex space-x-1 text-gray-500 hover:text-blue-600 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                             fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
@@ -193,7 +186,7 @@
                     @empty
                         <tr>
                             <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                                No {{ $segment->description }} found.
+                                No tax types found.
                             </td>
                         </tr>
                     @endforelse
@@ -203,11 +196,11 @@
         <!-- Pagination Links -->
         <div
             class="w-full md:w-auto text-xs flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0 mb-2">
-            {{ $segmentCodes->links() }}
+            {{ $taxTypes->links() }}
         </div>
     </div>
 
-    <!-- Create segment code modal -->
+    <!-- Create tax type modal -->
     <div id="add-modal" tabindex="-1" aria-hidden="true"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full">
         <div class="relative p-4 w-full max-w-md h-full md:h-auto">
@@ -216,7 +209,7 @@
                 <!-- Modal header -->
                 <div class="flex justify-between items-center pb-4 mb-2 rounded-t border-b sm:mb-5 dark:border-gray-600">
                     <h3 class="text-md font-semibold text-gray-900 dark:text-white">
-                        Add New {{ $segment->description }} Account
+                        Add New Tax Type
                     </h3>
                     <button type="button"
                         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -231,64 +224,61 @@
                     </button>
                 </div>
                 <!-- Modal body -->
-                <form action="{{ route('setup.chart.segment.segment_account.store', $segment->id) }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="location_id" value="{{ $segment->id }}">
-                    <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-1">
-                        <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-3">
-                            <div class="w-full md:col-span-1">
+                <div class="overflow-y-auto max-h-[70vh]">
+                    <form action="{{ route('tax.ty.store') }}" method="POST">
+                        @csrf
+                        <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
+                            <div class="sm:col-span-1">
                                 <label for="code"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Code*</label>
-                                <input type="text" name="code" id="code" minlength="{{ $segment->length }}"
-                                    maxlength="{{ $segment->length }}" inputmode="numeric" pattern="[0-9]*"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                <input type="text" name="code" id="code" maxLength="20"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. 00, 001" required>
+                                    placeholder="e.g. VAT" required>
                             </div>
-                            <div class="w-full md:col-span-2">
+
+                            <div class="sm:col-span-2">
                                 <label for="name"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Name*</label>
-                                <input type="text" name="name" id="name" maxlength="60"
+                                <input type="text" name="name" id="name" maxlength="100"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. No Location, IT Department" required>
+                                    placeholder="e.g. Value Added Tax" required>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="description"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Description</label>
+                                <textarea type="text" name="description" id="description" rows="3" maxlength="255"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    placeholder="e.g. A tax on the value added to goods and services."></textarea>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label for="status"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
+                                <select id="status" name="status"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    required>
+                                    {{-- <option selected="">Select product type</option> --}}
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="sm:col-span-2">
-                            <label for="description"
-                                class="block text-xs font-medium text-gray-900 dark:text-white">Description</label>
-                            <textarea type="text" name="description" id="description" rows="3" maxlength="120"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                placeholder="e.g. General account with no specific location, IT Department, etc."></textarea>
-                        </div>
-
-                        <div class="sm:col-span-2">
-                            <label for="status"
-                                class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
-                            <select id="status" name="status"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                required>
-                                {{-- <option selected="">Select product type</option> --}}
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
-                            </select>
-                        </div>
-
-                    </div>
-                    <button type="submit"
-                        class="text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
-                        <svg class="mr-1 -ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        Add {{ $segment->description }} account
-                    </button>
-                </form>
+                        <button type="submit"
+                            class="text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                            <svg class="mr-1 -ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd"
+                                    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            Add Tax Type
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-    <!-- End create segment code modal -->
+    <!-- End create tax type modal -->
 
     <!-- Modal  Edit-->
     <div id="edit-modal" tabindex="-1" aria-hidden="true"
@@ -300,7 +290,7 @@
                 <div
                     class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Update {{ $segment->description }} Account
+                        Update Category
                     </h3>
                     <button type="button"
                         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -314,89 +304,86 @@
                     </button>
                 </div>
                 <!-- Modal body -->
-                <form id="editForm" class="p-4 md:p-5" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" name="edit_id" id="edit_id">
-                    <input type="hidden" name="segment_id" value="{{ $segment->id }}">
+                <div class="overflow-y-auto max-h-[70vh]">
+                    <form id="editForm" class="p-4 md:p-5" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="edit_id" id="edit_id">
 
-                    <div class="grid ml-1 mr-1gap-2 mb-4 sm:grid-cols-1">
-                        <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-3">
-                            <div class="w-full md:col-span-1">
+                        <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
+                            <div class="sm:col-span-1">
                                 <label for="edit_code"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Code*</label>
-                                <input type="text" name="edit_code" id="edit_code"
-                                    minlength="{{ $segment->length }}" maxlength="{{ $segment->length }}"
-                                    inputmode="numeric" pattern="[0-9]*"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                <input type="text" name="edit_code" id="edit_code" maxLength="20"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. HQ-MAIN-REC" required>
+                                    placeholder="e.g. VAT" required>
                             </div>
-                            <div class="w-full md:col-span-2">
+
+                            <div class="sm:col-span-2">
                                 <label for="edit_name"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Name*</label>
-                                <input type="text" name="edit_name" id="edit_name" maxlength="60"
+                                <input type="text" name="edit_name" id="edit_name" maxlength="100"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. Ground Floor - Reception" required>
+                                    placeholder="e.g. Value Added Tax" required>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="edit_description"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Description</label>
+                                <textarea type="text" name="edit_description" id="edit_description" rows="3" maxlength="255"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    placeholder="e.g. A tax on the value added to goods and services."></textarea>
+                            </div>
+
+                            <div class="sm:col-span-1">
+                                <label for="edit_status"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
+                                <select id="edit_status" name="edit_status"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    required>
+                                    {{-- <option selected="">Select product type</option> --}}
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="sm:col-span-2">
-                            <label for="edit_description"
-                                class="block text-xs font-medium text-gray-900 dark:text-white">Description</label>
-                            <textarea type="text" name="edit_description" id="edit_description" rows="3" maxlength="120"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                placeholder="Location description"></textarea>
-                        </div>
 
-                        <div class="sm:col-span-2">
-                            <label for="edit_status"
-                                class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
-                            <select id="edit_status" name="edit_status"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                required>
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button type="submit"
-                        class="mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
-                        {{-- <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> --}}
-                        Update {{ $segment->description }} account
-                    </button>
-                </form>
+                        <button type="submit"
+                            class="mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                            {{-- <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> --}}
+                            Update Tax Type
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
     <!-- End edit modal -->
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const alert = document.getElementById('alert-message');
+        function clearModalFields() {
+            // Clear all form fields
+            const form = document.querySelector('form');
+            form.reset();
 
-            if (alert) {
-                setTimeout(() => {
-                    alert.style.transition = 'opacity 0.5s ease';
-                    alert.style.opacity = '0';
-
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 500);
-                }, 3000);
-            }
-        });
+            // Remove any success messages after a delay
+            setTimeout(() => {
+                const successMessage = document.querySelector('[data-success]');
+                if (successMessage) {
+                    successMessage.remove();
+                }
+            }, 3000);
+        }
 
         function openEditModal(button) {
             const id = button.getAttribute('data-id');
             document.getElementById('edit_id').value = button.getAttribute('data-id');
-            document.getElementById('edit_code').value = button.getAttribute('data-code');
             document.getElementById('edit_name').value = button.getAttribute('data-name');
+            document.getElementById('edit_code').value = button.getAttribute('data-code');
             document.getElementById('edit_description').value = button.getAttribute('data-description');
             document.getElementById('edit_status').value = button.getAttribute('data-status');
 
             const form = document.getElementById('editForm');
-            form.action = `/setup/chart/segment/segment_account/${id}`;
+            form.action = `tax_type/${id}`;
         }
     </script>
 @endsection

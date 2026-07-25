@@ -5,45 +5,39 @@
         {{-- Header --}}
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-semibold text-gray-900">Account Sub-categories</h1>
+                <h1 class="text-2xl font-semibold text-gray-900">Segments</h1>
                 <p class="text-sm text-gray-500">
-                    Manage account sub-categories.
+                    Manage account segments<br>
+                    Example: <strong>Department, Cost Center, Company, Project, Branch, etc.</strong>
                 </p>
             </div>
             <div class="flex items-center gap-2 mt-0">
-                <a href="{{ route('setup.chart.index') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray border border-gray-300 bg-gray-100 rounded-lg hover:bg-gray-200 ">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Back
-                </a>
-
                 <button data-modal-target="add-modal" data-modal-toggle="add-modal"
                     class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Sub-category
+                    Add Segment
                 </button>
             </div>
         </div>
 
         {{-- Stats Cards --}}
-        @php
+        {{-- @php
             $cards = [
                 [
-                    'title' => 'Total Sub-categories',
-                    'value' => $totalSubCategories,
+                    'title' => 'Total Accounts',
+                    'value' => $totalAccounts,
                     'color' => 'blue',
                     'icon' => '
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-collection-fill text-blue-600" viewBox="0 0 16 16">
-                        <path d="M0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6zM2 3a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 0-1h-11A.5.5 0 0 0 2 3m2-2a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 0-1h-7A.5.5 0 0 0 4 1"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-card-text text-blue-600" viewBox="0 0 16 16">
+                        <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z"/>
+                        <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5"/>
                         </svg>',
                 ],
                 [
-                    'title' => 'Active Sub-categories',
-                    'value' => $activeSubCategories,
+                    'title' => 'Active Accounts',
+                    'value' => $activeAccounts,
                     'color' => 'green',
                     'icon' => '
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
@@ -53,8 +47,8 @@
                         </svg>',
                 ],
                 [
-                    'title' => 'Inactive Sub-categories',
-                    'value' => $inactiveSubCategories,
+                    'title' => 'Inactive Accounts',
+                    'value' => $inactiveAccounts,
                     'color' => 'red',
                     'icon' => '
            <svg xmlns="http://www.w3.org/2000/svg"  width="16" height="16" fill="currentColor" class="bi bi-x-lg text-red-600" viewBox="0 0 16 16">
@@ -62,9 +56,9 @@
             </svg>',
                 ],
             ];
-        @endphp
+        @endphp --}}
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {{-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach ($cards as $card)
                 <div class="bg-white border rounded-xl p-4 flex items-center gap-4">
                     <div
@@ -81,10 +75,11 @@
                     </div>
                 </div>
             @endforeach
-        </div>
+        </div> --}}
 
         @if ($errors->any())
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 pt-1">
+            <div id="alert-message"
+                class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 pt-1">
                 <ul>
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -92,16 +87,15 @@
                 </ul>
             </div>
         @elseif (session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 pt-1"
+            <div id="alert-message"
+                class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 pt-1"
                 data-success="true">
                 {{ session('success') }}
             </div>
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Clear form fields after successful submission
-                    clearModalFields();
-                });
-            </script>
+        @elseif(session('error'))
+            <div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {{ session('error') }}
+            </div>
         @endif
 
         {{-- Filters --}}
@@ -112,20 +106,6 @@
                         placeholder="Search by name, code, or description..."
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                         value = "{{ request()->query('search') }}" oninput="this.form.submit()">
-                </div>
-
-                <div class="md:w-1/3 w-full">
-                    <select id="searchcategory" name="searchcategory"
-                        class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                        onchange="this.form.submit()">
-                        <option value="">All Categories</option>
-                        @foreach ($accountCategories as $category)
-                            <option value="{{ $category->id }}"
-                                {{ request('searchcategory') == $category->id ? 'selected' : '' }}>
-                                {{ $category->description }}
-                            </option>
-                        @endforeach
-                    </select>
                 </div>
 
                 <div class="md:w-1/3 w-full">
@@ -147,24 +127,33 @@
             <table class="min-w-full text-xs">
                 <thead class="bg-gray-200 text-gray-600">
                     <tr>
-                        <th scope="col" class="px-4 py-3 text-left w-[80px]">Code</th>
-                        <th scope="col" class="px-4 py-3 text-left w-[250px]">Description</th>
-                        <th scope="col" class="px-4 py-3 text-left w-[200px]">Category</th>
+                        <th scope="col" class="px-4 py-3 text-left w-[100px]">Code</th>
+                        <th scope="col" class="px-4 py-3 text-left w-[200px]">Description</th>
+                        <th scope="col" class="px-4 py-3 text-left w-[70px]">Length</th>
+                        <th scope="col" class="px-4 py-3 text-left w-[150px]">Accounts</th>
                         <th scope="col" class="px-4 py-3 text-left w-[150px]">Status</th>
                         <th scope="col" class="px-4 py-3 text-center w-[50px]">Actions</th>
                     </tr>
                 </thead>
 
                 <tbody class="divide-y">
-                    @forelse($subcategories as $subcategory)
+                    @forelse($segments as $segment)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 font-medium w-[80px]">{{ $subcategory->id }}</td>
-                            <td class="px-4 py-3 w-[250px]">{{ $subcategory->description }}</td>
-                            <td class="px-4 py-3 w-[200px]">{{ $subcategory->accountCategory->description ?? '' }}</td>
+                            <td class="px-4 py-3 font-medium w-[100px]">{{ $segment->code }}</td>
+                            <td class="px-4 py-3 w-[200px]">{{ $segment->description }}</td>
+                            <td class="px-4 py-3 w-[70px]">{{ $segment->length }} digits</td>
+                            <td class="px-4 py-3 w-[150px]">
+                                <a href="{{ route('gl.segments.segment_account.index', $segment->id) }}"
+                                    class="font-semibold text-gray-600 hover:underline"
+                                    title="View accounts for segment: {{ $segment->description }}">
+                                    ({{ $segment->segmentCodes->count() }})
+                                    accounts
+                                </a>
+                            </td>
                             {{-- <td class="px-4 py-3 w-[150px]">
-                                <a href="{{ route('location.sublocation.index', $mainAccount->id) }}"
+                                <a href="{{ route('location.sublocation.index', $segment->id) }}"
                                     class="font-semibold text-gray-600 hover:underline">
-                                    ({{ $mainAccount->sublocations_count }})
+                                    ({{ $segment->sublocations_count }})
                                     sub-locations
                                 </a>
                             </td> --}}
@@ -174,7 +163,7 @@
                                         0 => ['color' => 'bg-red-100 text-red-600', 'label' => 'Inactive'],
                                         1 => ['color' => 'bg-green-100 text-green-700', 'label' => 'Active'],
                                     ];
-                                    $status = $statuses[$subcategory->status] ?? [
+                                    $status = $statuses[$segment->status] ?? [
                                         'color' => 'bg-gray-100 text-gray-600',
                                         'label' => 'Unknown',
                                     ];
@@ -186,12 +175,12 @@
                             </td>
                             <td class="px-4 py-3 w-[50px]">
                                 <div class="flex items-center justify-center space-x-2">
-                                    <button type="button" title="Edit account: {{ $subcategory->description }}"
+                                    <button type="button" title="Edit segment: {{ $segment->description }}"
                                         data-modal-target="edit-modal" data-modal-toggle="edit-modal"
-                                        data-id="{{ $subcategory->id }}"
-                                        data-description="{{ $subcategory->description }}"
-                                        data-category="{{ $subcategory->account_category_id }}"
-                                        data-status="{{ $subcategory->status }}" onclick="openEditModal(this)"
+                                        data-id="{{ $segment->id }}" data-code="{{ $segment->code }}"
+                                        data-description="{{ $segment->description }}"
+                                        data-length="{{ $segment->length }}" data-status="{{ $segment->status }}"
+                                        onclick="openEditModal(this)"
                                         class="group flex space-x-1 text-gray-500 hover:text-blue-600 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                             fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
@@ -208,7 +197,7 @@
                     @empty
                         <tr>
                             <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                                No account sub-categories found.
+                                No segments found.
                             </td>
                         </tr>
                     @endforelse
@@ -218,11 +207,12 @@
         <!-- Pagination Links -->
         <div
             class="w-full md:w-auto text-xs flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0 mb-2">
-            {{ $subcategories->links() }}
+            {{ $segments->links() }}
         </div>
     </div>
 
-    <!-- Create category modal -->
+
+    <!-- Create segment modal -->
     <div id="add-modal" tabindex="-1" aria-hidden="true"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full">
         <div class="relative p-4 w-full max-w-md h-full md:h-auto">
@@ -231,7 +221,7 @@
                 <!-- Modal header -->
                 <div class="flex justify-between items-center pb-4 mb-2 rounded-t border-b sm:mb-5 dark:border-gray-600">
                     <h3 class="text-md font-semibold text-gray-900 dark:text-white">
-                        Add New Sub-category
+                        Add New Segment
                     </h3>
                     <button type="button"
                         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -247,28 +237,33 @@
                 </div>
                 <!-- Modal body -->
                 <div class="overflow-y-auto max-h-[70vh]">
-                    <form action="{{ route('setup.chart.subcategory.store') }}" method="POST">
+                    <form action="{{ route('gl.segments.store') }}" method="POST">
                         @csrf
                         <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
+                            <div class="md:col-span-1">
+                                <label for="Code"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Segment
+                                    Code*</label>
+                                <input type="text" name="code" id="code"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    placeholder="e.g. DPT, CC, COMP" required>
+                            </div>
+
                             <div class="sm:col-span-2">
                                 <label for="description"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Description*</label>
                                 <textarea type="text" name="description" id="description" rows="3"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. Cash and Cash Equivalents" required></textarea>
+                                    placeholder="e.g. Department, Cost Center, Company" required></textarea>
                             </div>
 
                             <div class="md:col-span-1">
-                                <label for="category"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Category*</label>
-                                <select id="category" name="category"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    required>
-                                    {{-- <option selected="">Select product type</option> --}}
-                                    @foreach ($accountCategories as $category)
-                                        <option value="{{ $category->id }}">{{ $category->description }}</option>
-                                    @endforeach
-                                </select>
+                                <label for="length"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Length*</label>
+                                <input type="number" name="length" id="length" min="1" max="20"
+                                    step="1"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    placeholder="1" required>
                             </div>
 
                             <div class="md:col-span-1">
@@ -291,14 +286,14 @@
                                     d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
                                     clip-rule="evenodd"></path>
                             </svg>
-                            Add Sub-category
+                            Add Segment
                         </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-    <!-- End create category modal -->
+    <!-- End create segment modal -->
 
     <!-- Modal  Edit-->
     <div id="edit-modal" tabindex="-1" aria-hidden="true"
@@ -310,7 +305,7 @@
                 <div
                     class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Update Sub-category
+                        Update Segment
                     </h3>
                     <button type="button"
                         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -330,24 +325,30 @@
                         @method('PUT')
                         <input type="hidden" name="edit_id" id="edit_id">
                         <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
+                            <div class="md:col-span-1">
+                                <label for="edit_code"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Segment
+                                    Code*</label>
+                                <input type="text" name="edit_code" id="edit_code"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    placeholder="e.g. DPT, CC, COMP" required>
+                            </div>
+
                             <div class="sm:col-span-2">
                                 <label for="edit_description"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Description*</label>
                                 <textarea type="text" name="edit_description" id="edit_description" rows="3"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. Cash and Cash Equivalents" required></textarea>
+                                    placeholder="e.g. Department, Cost Center, Company" required></textarea>
                             </div>
 
                             <div class="md:col-span-1">
-                                <label for="edit_category"
-                                    class="block text-xs font-medium text-gray-900 dark:text-white">Category*</label>
-                                <select id="edit_category" name="edit_category"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    required>
-                                    @foreach ($accountCategories as $category)
-                                        <option value="{{ $category->id }}">{{ $category->description }}</option>
-                                    @endforeach
-                                </select>
+                                <label for="edit_length"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Length*</label>
+                                <input type="number" name="edit_length" id="edit_length" min="1" max="20"
+                                    step="1"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    placeholder="1" required>
                             </div>
 
                             <div class="md:col-span-1">
@@ -366,7 +367,7 @@
                         <button type="submit" @if (Auth::user()->role == 2) disabled @endif
                             class="btn-Update mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 {{ Auth::user()->role == 2 ? ' cursor-not-allowed' : '' }}">
                             {{-- <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> --}}
-                            Update Sub-category
+                            Update Segment
                         </button>
                     </form>
                 </div>
@@ -376,31 +377,32 @@
     <!-- End edit modal -->
 
     <script>
-        function clearModalFields() {
-            // Clear all form fields
-            const form = document.querySelector('form');
-            form.reset();
+        document.addEventListener('DOMContentLoaded', function() {
+            const alert = document.getElementById('alert-message');
 
-            // Remove any success messages after a delay
-            setTimeout(() => {
-                const successMessage = document.querySelector('[data-success]');
-                if (successMessage) {
-                    successMessage.remove();
-                }
-            }, 3000);
-        }
+            if (alert) {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s ease';
+                    alert.style.opacity = '0';
+
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 3000);
+            }
+        });
 
         function openEditModal(button) {
 
             const id = button.dataset.id;
-            const categoryId = button.dataset.category;
 
             document.getElementById('edit_id').value = id;
+            document.getElementById('edit_code').value = button.dataset.code;
             document.getElementById('edit_description').value = button.dataset.description;
-            document.getElementById('edit_category').value = categoryId;
+            document.getElementById('edit_length').value = button.getAttribute('data-length');
             document.getElementById('edit_status').value = button.dataset.status;
 
-            document.getElementById('editForm').action = `/setup/chart/subcategory/${id}`;
+            document.getElementById('editForm').action = `/gl/chart/segment/${id}`;
         }
     </script>
 @endsection

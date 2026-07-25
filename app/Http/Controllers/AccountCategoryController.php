@@ -45,7 +45,7 @@ class AccountCategoryController extends Controller
                 'searchstatus' => $searchstatus,
             ]);
 
-        return view('setup.chart.category.index', compact('totalCategories', 'activeCategories', 'inactiveCategories', 'categories', 'accountCategories', 'accountTypes'));
+        return view('gl.chart.category.index', compact('totalCategories', 'activeCategories', 'inactiveCategories', 'categories', 'accountCategories', 'accountTypes'));
     }
 
     public function store(Request $request)
@@ -64,7 +64,7 @@ class AccountCategoryController extends Controller
             'created_at' => now(),
         ]);
 
-        return redirect()->route('setup.chart.category.index')->with('success', 'Account category successfully created.');
+        return redirect()->route('gl.chart.category.index')->with('success', 'Account category successfully created.');
     }
 
     public function update(Request $request, $id)
@@ -85,6 +85,6 @@ class AccountCategoryController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->route('setup.chart.category.index')->with('success', 'Account category successfully updated.');
+        return redirect()->route('gl.chart.category.index')->with('success', 'Account category successfully updated.');
     }
 }

@@ -51,7 +51,7 @@ class MainAccountController extends Controller
                 'searchstatus' => $searchstatus,
             ]);
 
-        return view('setup.chart.index', compact('mainAccounts', 'accountTypes', 'accountCategories', 'accountSubcategories', 'totalAccounts', 'activeAccounts', 'inactiveAccounts', 'totalSubAccounts'));
+        return view('gl.chart.index', compact('mainAccounts', 'accountTypes', 'accountCategories', 'accountSubcategories', 'totalAccounts', 'activeAccounts', 'inactiveAccounts', 'totalSubAccounts'));
     }
 
     public function store(Request $request)
@@ -76,7 +76,7 @@ class MainAccountController extends Controller
             'created_at' => now(),
         ]);
 
-        return redirect()->route('setup.chart.index')->with('success', 'Main account created successfully.');
+        return redirect()->route('gl.chart')->with('success', 'Main account created successfully.');
     }
 
     public function updateChart(Request $request, $id)
@@ -105,6 +105,6 @@ class MainAccountController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->route('setup.chart.index')->with('success', 'Main account updated successfully.');
+        return redirect()->route('gl.chart')->with('success', 'Main account updated successfully.');
     }
 }

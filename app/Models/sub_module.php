@@ -28,6 +28,6 @@ class sub_module extends Model
 
     public function getRouteNameAttribute()
     {
-        return strtolower(str_replace('-', '.', $this->name));
+        return strtolower(str_replace('-', '.', $this->code));
     }
 }

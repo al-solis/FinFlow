@@ -15,7 +15,7 @@ class SegmentCodeController extends Controller
         $segment = segment::findOrFail($segmentId);
         $segmentCodes = segment_code::where('segment_id', $segmentId)->paginate(env('APP_PAGINATE_PER_PAGE', 10));
 
-        return view('setup.chart.segment.segment_account.index', compact('segment', 'segmentCodes'));
+        return view('gl.chart.segment.segment_account.index', compact('segment', 'segmentCodes'));
     }
 
     public function store(Request $request, $segmentId)
@@ -37,7 +37,7 @@ class SegmentCodeController extends Controller
             'created_at' => now(),
         ]);
 
-        return redirect()->route('setup.chart.segment.segment_account.index', ['segmentId' => $segmentId])
+        return redirect()->route('gl.segments.segment_account.index', ['segmentId' => $segmentId])
             ->with('success', 'Segment code created successfully.');
     }
 
@@ -62,7 +62,7 @@ class SegmentCodeController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->route('setup.chart.segment.segment_account.index', ['segmentId' => $segmentCode->segment_id])
+        return redirect()->route('gl.segments.segment_account.index', ['segmentId' => $segmentCode->segment_id])
             ->with('success', 'Segment code updated successfully.');
     }
 

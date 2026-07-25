@@ -38,7 +38,7 @@ class SegmentController extends Controller
                 'searchstatus' => $searchstatus,
             ]);
 
-        return view('setup.chart.segment.index', compact('totalSegments', 'activeSegments', 'inactiveSegments', 'segments'));
+        return view('gl.chart.segment.index', compact('totalSegments', 'activeSegments', 'inactiveSegments', 'segments'));
     }
 
     public function store(Request $request)
@@ -59,7 +59,7 @@ class SegmentController extends Controller
             'created_at' => now(),
         ]);
 
-        return redirect()->route('setup.chart.segment.index')->with('success', 'Segment created successfully.');
+        return redirect()->route('gl.segments')->with('success', 'Segment created successfully.');
     }
 
     public function update(Request $request, $id)
@@ -103,6 +103,6 @@ class SegmentController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->route('setup.chart.segment.index')->with('success', 'Segment updated successfully.');
+        return redirect()->route('gl.segments')->with('success', 'Segment updated successfully.');
     }
 }
