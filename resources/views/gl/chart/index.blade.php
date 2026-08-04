@@ -236,8 +236,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                                No main accounts found.
+                            <td colspan="7" class="px-4 py-6 text-center text-gray-500">
+                                <img src="{{ asset('images/main-account.svg') }}" alt="No data"
+                                    class="mx-auto mb-4 w-24 h-28">
+                                No main accounts found. Click here to <a href="#" data-modal-target="add-modal"
+                                    data-modal-toggle="add-modal" class="text-blue-600 hover:underline">add a new
+                                    main account</a>.
                             </td>
                         </tr>
                     @endforelse

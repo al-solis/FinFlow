@@ -176,21 +176,6 @@ return new class extends Migration {
 
         DB::table('sub_modules')->insert([
             'module_id' => 2,
-            'code' => 'AP-TERMS',
-            'name' => 'Payment Terms',
-            'description' => 'Manage the payment terms for the Accounts Payable module.',
-            'group' => 'Maintenance',
-            'icon' => 'fa-calendar-check',
-            'img' => 'payment-terms.png',
-            'src' => 'https://img.icons8.com/emoji/48/calendar-emoji.png',
-            'sequence' => 3,
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('sub_modules')->insert([
-            'module_id' => 2,
             'code' => 'AP-RFD',
             'name' => 'Request for Disbursement',
             'description' => 'Manage the request for disbursement for the Accounts Payable module.',
@@ -359,6 +344,20 @@ return new class extends Migration {
 
         DB::table('sub_modules')->insert([
             'module_id' => 5,
+            'code' => 'BM-RECON',
+            'name' => 'Bank Reconciliation',
+            'description' => 'Bank reconciliation for the Bank Management module.',
+            'icon' => 'fa bank',
+            'img' => 'bank-recon.png',
+            'src' => 'https://img.icons8.com/fluency/48/transfer-money.png',
+            'sequence' => 1,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('sub_modules')->insert([
+            'module_id' => 5,
             'code' => 'BM-BANK',
             'name' => 'Bank Accounts',
             'description' => 'Manage the bank accounts for the Bank Management module.',
@@ -366,7 +365,7 @@ return new class extends Migration {
             'icon' => 'fa bank',
             'img' => 'bank-accounts.png',
             'src' => 'https://img.icons8.com/stickers/100/merchant-account.png',
-            'sequence' => 1,
+            'sequence' => 2,
             'is_active' => true,
             'created_at' => now(),
             'updated_at' => now(),
@@ -526,20 +525,6 @@ return new class extends Migration {
         ]);
 
         DB::table('sub_modules')->insert([
-            'module_id' => 14,
-            'code' => 'MASTER-COMP',
-            'name' => 'Company',
-            'description' => 'Displays information about the company.',
-            'icon' => 'fa-building',
-            'img' => 'company.png',
-            'src' => 'https://img.icons8.com/color/48/company.png',
-            'sequence' => 1,
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('sub_modules')->insert([
             'module_id' => 15,
             'code' => 'ADMIN-USER',
             'name' => 'User',
@@ -583,6 +568,66 @@ return new class extends Migration {
 
         DB::table('sub_modules')->insert([
             'module_id' => 15,
+            'code' => 'ADMIN-ORG',
+            'name' => 'Organization',
+            'description' => 'Displays information and settings about your orgranization.',
+            'group' => 'Maintenance',
+            'icon' => 'fa-building',
+            'img' => 'company.png',
+            'src' => 'https://img.icons8.com/color/48/company.png',
+            'sequence' => 1,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('sub_modules')->insert([
+            'module_id' => 15,
+            'code' => 'ADMIN-CURRENCY',
+            'name' => 'Currency',
+            'description' => 'Manage the currency settings.',
+            'group' => 'Maintenance',
+            'icon' => 'fa-dollar-sign',
+            'img' => 'currency.png',
+            'src' => 'https://img.icons8.com/color/48/currency-exchange.png',
+            'sequence' => 4,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('sub_modules')->insert([
+            'module_id' => 15,
+            'code' => 'ADMIN-TERMS',
+            'name' => 'Payment Terms',
+            'description' => 'Manage the payment terms.',
+            'group' => 'Maintenance',
+            'icon' => 'fa-calendar-check',
+            'img' => 'terms.png',
+            'src' => 'https://img.icons8.com/emoji/48/calendar-emoji.png',
+            'sequence' => 5,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('sub_modules')->insert([
+            'module_id' => 15,
+            'code' => 'ADMIN-METHOD',
+            'name' => 'Payment Methods',
+            'description' => 'Manage the payment methods.',
+            'group' => 'Maintenance',
+            'icon' => 'fa-credit-card',
+            'img' => 'payment-methods.png',
+            'src' => 'https://img.icons8.com/3d-fluency/94/payment-method.png',
+            'sequence' => 6,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('sub_modules')->insert([
+            'module_id' => 15,
             'code' => 'ADMIN-NUM',
             'name' => 'Number Series',
             'description' => 'Displays information about the number series.',
@@ -590,7 +635,7 @@ return new class extends Migration {
             'icon' => 'fa-sort-numeric-up',
             'img' => 'number-series.png',
             'src' => 'https://img.icons8.com/external-filled-outline-berkahicon/64/external-calculator-fintech-filled-outline-berkahicon.png',
-            'sequence' => 5,
+            'sequence' => 7,
             'is_active' => true,
             'created_at' => now(),
             'updated_at' => now(),

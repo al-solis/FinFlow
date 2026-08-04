@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\SystemSettings;
 use App\Models\account_structure;
 use App\Models\account_structure_detail;
 use App\Models\segment;
@@ -12,6 +13,7 @@ class AccountStructureDetailController extends Controller
 {
     public function index($accountStructureId)
     {
+        $settings = SystemSettings::get();
         $accountStructure = account_structure::findOrFail($accountStructureId);
 
         $glExists = account_structure_detail::where('account_structure_id', $accountStructure->id)
@@ -39,7 +41,7 @@ class AccountStructureDetailController extends Controller
             ->where('status', 1)
             ->get();
 
-        return view('setup.chart.account_structure_details.index', compact('accountStructure', 'details', 'availableSegments'));
+        return view('gl.chart.account_structure_details.index', compact('accountStructure', 'details', 'availableSegments', 'settings'));
     }
 
     public function store(Request $request, $accountStructureId)
@@ -69,7 +71,7 @@ class AccountStructureDetailController extends Controller
             'separator' => $request->separator ?: '-',
         ]);
 
-        return redirect()->route('setup.chart.account_structure_details.index', $accountStructure->id)
+        return redirect()->route('gl.chart.account_structure_details.index', $accountStructure->id)
             ->with('success', 'Segment added to structure.');
     }
 
@@ -133,7 +135,7 @@ class AccountStructureDetailController extends Controller
             }
         });
 
-        return redirect()->route('setup.chart.account_structure_details.index', $accountStructureId)
+        return redirect()->route('gl.chart.account_structure_details.index', $accountStructureId)
             ->with('success', 'Segment removed from structure.');
     }
 }

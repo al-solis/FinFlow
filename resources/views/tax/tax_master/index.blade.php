@@ -14,13 +14,13 @@
                 </p>
             </div>
             <div class="flex items-center gap-2 mt-0">
-                <a href=""
+                {{-- <a href=""
                     class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray border border-gray-300 bg-gray-100 rounded-lg hover:bg-gray-200 ">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                     Back
-                </a>
+                </a> --}}
 
                 <button data-modal-target="add-modal" data-modal-toggle="add-modal"
                     class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800">
@@ -233,7 +233,11 @@
                     @empty
                         <tr>
                             <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                                No tax masters found.
+                                <img src="{{ asset('images/tax-master.svg') }}" alt="No data"
+                                    class="mx-auto mb-4 w-24 h-28">
+                                No tax masters found. Click here to <a href="#" data-modal-target="add-modal"
+                                    data-modal-toggle="add-modal" class="text-blue-600 hover:underline">add a new
+                                    tax master</a>.
                             </td>
                         </tr>
                     @endforelse

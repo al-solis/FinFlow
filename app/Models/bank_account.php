@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class bank_account extends Model
+{
+    protected $table = 'bank_accounts';
+
+    protected $fillable = [
+        'code',
+        'name',
+        'branch',
+        'account_name',
+        'account_number',
+        'currency_id',
+        'account_type',
+        'chart_of_account_id',
+        'status',
+        'created_by',
+        'updated_by',
+    ];
+
+    public function currency()
+    {
+        return $this->belongsTo(currency::class, 'currency_id');
+    }
+
+    public function chartOfAccount()
+    {
+        return $this->belongsTo(chart_of_account::class, 'chart_of_account_id');
+    }
+}

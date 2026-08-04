@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use App\Models\segment;
 use App\Models\segment_code;
 
@@ -21,7 +22,11 @@ class SegmentCodeController extends Controller
     public function store(Request $request, $segmentId)
     {
         $request->validate([
-            'code' => 'required|unique:segment_codes,code',
+            'code' => [
+                'required',
+                Rule::unique('segment_codes', 'code')
+                    ->where(fn($query) => $query->where('segment_id', $segmentId)),
+            ],
             'name' => 'required|max:60',
             'description' => 'required|max:120',
             'status' => 'required|integer'
@@ -47,7 +52,14 @@ class SegmentCodeController extends Controller
         $segment = segment::findOrFail($segmentCode->segment_id);
 
         $request->validate([
-            'edit_code' => 'required|min:' . $segment->length . '|max:' . $segment->length . '|unique:segment_codes,code,' . $id,
+            // 'edit_code' => 'required|min:' . $segment->length . '|max:' . $segment->length . '|unique:segment_codes,code,' . $id,
+            'edit_code' => [
+                'required',
+                'size:' . $segment->length,
+                Rule::unique('segment_codes', 'code')
+                    ->where(fn($query) => $query->where('segment_id', $segmentCode->segment_id))
+                    ->ignore($segmentCode->id),
+            ],
             'edit_name' => 'required|max:60',
             'edit_description' => 'required|max:120',
             'edit_status' => 'required|integer'

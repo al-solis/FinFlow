@@ -207,8 +207,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                                No account sub-categories found.
+                            <td colspan="5" class="px-4 py-6 text-center text-gray-500">
+                                <img src="{{ asset('images/account-subcategory.svg') }}" alt="No data"
+                                    class="mx-auto mb-4 w-24 h-28">
+                                No sub-categories found. Click here to <a href="#" data-modal-target="add-modal"
+                                    data-modal-toggle="add-modal" class="text-blue-600 hover:underline">add a new
+                                    sub-category</a>.
                             </td>
                         </tr>
                     @endforelse
@@ -247,7 +251,7 @@
                 </div>
                 <!-- Modal body -->
                 <div class="overflow-y-auto max-h-[70vh]">
-                    <form action="{{ route('setup.chart.subcategory.store') }}" method="POST">
+                    <form action="{{ route('gl.chart.subcategory.store') }}" method="POST">
                         @csrf
                         <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
                             <div class="sm:col-span-2">
@@ -400,7 +404,7 @@
             document.getElementById('edit_category').value = categoryId;
             document.getElementById('edit_status').value = button.dataset.status;
 
-            document.getElementById('editForm').action = `/setup/chart/subcategory/${id}`;
+            document.getElementById('editForm').action = `/gl/chart/subcategory/${id}`;
         }
     </script>
 @endsection

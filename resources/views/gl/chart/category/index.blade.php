@@ -11,7 +11,7 @@
                 </p>
             </div>
             <div class="flex items-center gap-2 mt-0">
-                <a href="{{ route('setup.chart.index') }}"
+                <a href="{{ route('gl.chart') }}"
                     class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray border border-gray-300 bg-gray-100 rounded-lg hover:bg-gray-200 ">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -205,8 +205,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                                No account categories found.
+                            <td colspan="5" class="px-4 py-6 text-center text-gray-500">
+                                <img src="{{ asset('images/account-category.svg') }}" alt="No data"
+                                    class="mx-auto mb-4 w-24 h-28">
+                                No account categories found. Click here to <a href="#" data-modal-target="add-modal"
+                                    data-modal-toggle="add-modal" class="text-blue-600 hover:underline">add a new
+                                    account category</a>.
                             </td>
                         </tr>
                     @endforelse
@@ -245,7 +249,7 @@
                 </div>
                 <!-- Modal body -->
                 <div class="overflow-y-auto max-h-[70vh]">
-                    <form action="{{ route('setup.chart.category.store') }}" method="POST">
+                    <form action="{{ route('gl.chart.category.store') }}" method="POST">
                         @csrf
                         <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
                             <div class="sm:col-span-2">
@@ -398,7 +402,7 @@
             document.getElementById('edit_type').value = typeId;
             document.getElementById('edit_status').value = button.dataset.status;
 
-            document.getElementById('editForm').action = `/setup/chart/category/${id}`;
+            document.getElementById('editForm').action = `/gl/chart/category/${id}`;
         }
     </script>
 @endsection

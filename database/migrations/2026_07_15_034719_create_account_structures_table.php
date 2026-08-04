@@ -17,11 +17,14 @@ return new class extends Migration {
             $table->dateTime('start_date');
             $table->dateTime('end_date')->nullable();
             $table->boolean('is_default')->default(false);
-            $table->integer('status');
+            $table->integer('status')->comment('0 = Draft, 1 = Generated, 2 = Active, 3 = Closed'); // 0 = Draft, 1 = Generated, 2 = Active, 3 = Closed
             $table->unsignedBigInteger('created_by');
             $table->foreign('created_by')->references('id')->on('users');
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->foreign('updated_by')->references('id')->on('users');
+            $table->datetime('last_synced_at')->nullable();
+            $table->unsignedBigInteger('last_synced_by')->nullable();
+            $table->foreign('last_synced_by')->references('id')->on('users');
             $table->timestamps();
         });
     }

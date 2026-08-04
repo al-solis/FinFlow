@@ -10,17 +10,17 @@
             <div>
                 <h1 class="text-2xl font-semibold text-gray-900">Account Structures</h1>
                 <p class="text-sm text-gray-500">
-                    Manage and setup account structures<br>
+                    Manage the account structure for the General Ledger module.<br>
                 </p>
             </div>
             <div class="flex items-center gap-2 mt-0">
-                <a href="{{ route('setup.index') }}"
+                {{-- <a href="{{ route('setup.index') }}"
                     class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray border border-gray-300 bg-gray-100 rounded-lg hover:bg-gray-200 ">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                     Back
-                </a>
+                </a> --}}
 
                 <button data-modal-target="add-modal" data-modal-toggle="add-modal"
                     class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800">
@@ -123,8 +123,10 @@
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                         onchange="this.form.submit()">
                         <option value="">All Status</option>
-                        <option value="1" {{ request('searchstatus') === '1' ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ request('searchstatus') === '0' ? 'selected' : '' }}>Inactive</option>
+                        <option value="0" {{ request('searchstatus') === '0' ? 'selected' : '' }}>Draft</option>
+                        <option value="1" {{ request('searchstatus') === '1' ? 'selected' : '' }}>Generated</option>
+                        <option value="2" {{ request('searchstatus') === '2' ? 'selected' : '' }}>Active</option>
+                        <option value="3" {{ request('searchstatus') === '3' ? 'selected' : '' }}>Closed</option>
                     </select>
                 </div>
             </div>
@@ -172,8 +174,10 @@
                             <td class="px-4 py-3 w-[50px] text-xs font-semibold">
                                 @php
                                     $statuses = [
-                                        0 => ['color' => 'bg-red-100 text-red-600', 'label' => 'Inactive'],
-                                        1 => ['color' => 'bg-green-100 text-green-700', 'label' => 'Active'],
+                                        0 => ['color' => 'bg-gray-100 text-gray-600', 'label' => 'Draft'],
+                                        1 => ['color' => 'bg-blue-100 text-blue-700', 'label' => 'Generated'],
+                                        2 => ['color' => 'bg-green-100 text-green-700', 'label' => 'Active'],
+                                        3 => ['color' => 'bg-orange-100 text-orange-600', 'label' => 'Closed'],
                                     ];
                                     $status = $statuses[$accountStructure->status] ?? [
                                         'color' => 'bg-gray-100 text-gray-600',
@@ -189,13 +193,23 @@
                                 <div class="flex items-center justify-center gap-3">
 
                                     {{-- Configure Account Structure --}}
-                                    <a href="{{ route('setup.chart.account_structure_details.index', $accountStructure->id) }}"
+                                    <a href="{{ route('gl.chart.account_structure_details.index', $accountStructure->id) }}"
                                         title="Configure Account Structure"
                                         class="text-indigo-600 hover:text-indigo-800 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                                             fill="currentColor" class="bi bi-diagram-3" viewBox="0 0 16 16">
                                             <path fill-rule="evenodd"
                                                 d="M0 1.5A1.5 1.5 0 0 1 1.5 0h2A1.5 1.5 0 0 1 5 1.5v1A1.5 1.5 0 0 1 3.5 4H3v2h10V4h-.5A1.5 1.5 0 0 1 11 2.5v-1A1.5 1.5 0 0 1 12.5 0h2A1.5 1.5 0 0 1 16 1.5v1A1.5 1.5 0 0 1 14.5 4H14v3.5A1.5 1.5 0 0 1 12.5 9H9v2h.5A1.5 1.5 0 0 1 11 12.5v1A1.5 1.5 0 0 1 9.5 15h-3A1.5 1.5 0 0 1 5 13.5v-1A1.5 1.5 0 0 1 6.5 11H7V9H3.5A1.5 1.5 0 0 1 2 7.5V4h-.5A1.5 1.5 0 0 1 0 2.5v-1z" />
+                                        </svg>
+                                    </a>
+
+                                    <a href="{{ route('gl.chart_of_accounts.index', $accountStructure) }}"
+                                        title="View Chart of Accounts for {{ $accountStructure->name }}"
+                                        class="text-green-600 hover:text-green-800 transition-colors">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                     </a>
 
@@ -230,8 +244,13 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                                No account structures found.
+                            <td colspan="8" class="px-4 py-6 text-center text-gray-500">
+                                <img src="{{ asset('images/main-account.svg') }}" alt="No data"
+                                    class="mx-auto mb-4 w-24 h-28">
+                                <p>No account structures found.</p>
+                                <span>Click here to <a href="#" data-modal-target="add-modal"
+                                        data-modal-toggle="add-modal" class="text-blue-600 hover:underline">add a new
+                                        account structure</a>.</span>
                             </td>
                         </tr>
                     @endforelse
@@ -271,7 +290,7 @@
                 </div>
                 <!-- Modal body -->
                 <div class="overflow-y-auto max-h-[70vh]">
-                    <form action="{{ route('setup.chart.account_structures.store') }}" method="POST">
+                    <form action="{{ route('gl.structure.store') }}" method="POST">
                         @csrf
                         <div class="grid ml-1 mr-1 gap-2 mb-4 sm:grid-cols-2">
                             <div class="md:col-span-1">
@@ -306,17 +325,19 @@
                                     required>
                             </div>
 
-                            <div class="md:col-span-1">
+                            {{-- <div class="md:col-span-1">
                                 <label for="status"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
                                 <select id="status" name="status"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                                     required>
-                                    {{-- <option selected="">Select product type</option> --}}
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
+                                    
+                                    <option value="0">Draft</option>
+                                    <option value="1">Generated</option>
+                                    <option value="2">Active</option>
+                                    <option value="3">Closed</option>
                                 </select>
-                            </div>
+                            </div> --}}
                             <div class="flex items-center md:col-span-1">
                                 <input checked id="default" name="default" type="checkbox" value=""
                                     class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
@@ -404,16 +425,18 @@
                                     required>
                             </div>
 
-                            <div class="md:col-span-1">
+                            {{-- <div class="md:col-span-1">
                                 <label for="edit_status"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Status*</label>
                                 <select id="edit_status" name="edit_status"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                                     required>
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
+                                    <option value="0">Draft</option>
+                                    <option value="1">Generated</option>
+                                    <option value="2">Active</option>
+                                    <option value="3">Closed</option>
                                 </select>
-                            </div>
+                            </div> --}}
                             <div class="flex items-center md:col-span-1">
                                 <input checked id="edit_default" name="edit_default" type="checkbox"
                                     class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
@@ -478,7 +501,7 @@
             document.getElementById('edit_status').value = button.dataset.status;
             document.getElementById('edit_default').checked = button.dataset.default === '1';
 
-            document.getElementById('editForm').action = `/setup/chart/account_structures/${id}`;
+            document.getElementById('editForm').action = `/gl/chart/account_structures/${id}`;
         }
     </script>
 @endsection
