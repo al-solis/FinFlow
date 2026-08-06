@@ -13,6 +13,8 @@ return new class extends Migration {
     {
         Schema::create('account_categories', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
             $table->unsignedBigInteger('account_type_id');
             $table->foreign('account_type_id')->references('id')->on('account_types');
             $table->string('description', 120);
@@ -25,19 +27,19 @@ return new class extends Migration {
         });
 
         DB::table('account_categories')->insert([
-            ['account_type_id' => 1, 'description' => 'Current Assets', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 1, 'description' => 'Non-Current Assets', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 2, 'description' => 'Current Liabilities', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 2, 'description' => 'Non-Current Liabilities', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 3, 'description' => 'Owner\'s Equity', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 4, 'description' => 'Operating Revenue', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 4, 'description' => 'Non-Operating Revenue', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 4, 'description' => 'Other Income', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 5, 'description' => 'Operating Expenses', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 5, 'description' => 'Administrative Expenses', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 5, 'description' => 'Financial Expenses', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 5, 'description' => 'Tax Expenses', 'created_by' => '1', 'created_at' => now()],
-            ['account_type_id' => 5, 'description' => 'Non-Operating Expenses', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 1, 'description' => 'Current Assets', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 1, 'description' => 'Non-Current Assets', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 2, 'description' => 'Current Liabilities', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 2, 'description' => 'Non-Current Liabilities', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 3, 'description' => 'Owner\'s Equity', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 4, 'description' => 'Operating Revenue', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 4, 'description' => 'Non-Operating Revenue', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 4, 'description' => 'Other Income', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 5, 'description' => 'Operating Expenses', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 5, 'description' => 'Administrative Expenses', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 5, 'description' => 'Financial Expenses', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 5, 'description' => 'Tax Expenses', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_type_id' => 5, 'description' => 'Non-Operating Expenses', 'created_by' => '1', 'created_at' => now()],
 
         ]);
     }

@@ -13,7 +13,9 @@ return new class extends Migration {
     {
         Schema::create('terms', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 20)->unique();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
+            $table->string('code', 20);
             $table->string('name', 100);
             $table->text('description')->nullable();
             $table->integer('days')->default(0);
@@ -27,6 +29,7 @@ return new class extends Migration {
 
         DB::table('terms')->insert([
             [
+                'organization_id' => 1,
                 'code' => '1DAY',
                 'name' => '1 Day',
                 'description' => 'Payment due in 1 day.',
@@ -36,6 +39,7 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => '30DAYS',
                 'name' => 'Net 30',
                 'description' => 'Payment due in 30 days.',
@@ -45,6 +49,7 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => '60DAYS',
                 'name' => 'Net 60',
                 'description' => 'Payment due in 60 days.',
@@ -54,6 +59,7 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => '90DAYS',
                 'name' => 'Net 90',
                 'description' => 'Payment due in 90 days.',

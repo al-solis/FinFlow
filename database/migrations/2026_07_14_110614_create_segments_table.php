@@ -12,6 +12,8 @@ return new class extends Migration {
     {
         Schema::create('segments', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
             $table->string('code', 10);
             $table->string('description', 60);
             $table->integer('length');

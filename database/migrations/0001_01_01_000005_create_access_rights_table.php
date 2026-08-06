@@ -13,6 +13,8 @@ return new class extends Migration {
     {
         Schema::create('access_rights', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
             $table->unsignedBigInteger('role_id');
             $table->foreign('role_id')->references('id')->on('roles');
             $table->unsignedBigInteger('module_id');
@@ -32,6 +34,7 @@ return new class extends Migration {
 
         DB::table('access_rights')->insertUsing(
             [
+                'organization_id',
                 'role_id',
                 'module_id',
                 'sub_module_id',
@@ -44,6 +47,7 @@ return new class extends Migration {
             ],
             DB::table('sub_modules')->selectRaw(
                 '1,
+                1,
                 module_id,
                 id,
                 1,

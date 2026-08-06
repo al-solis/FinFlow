@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Organization;
+use App\Models\organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,14 +13,15 @@ class OrganizationController extends Controller
 {
     public function index()
     {
-        $organization = Organization::first();
+        $organization = organization::where('status', 1)->first();
         $currencies = currency::where('status', 1)->get();
         return view('admin.organization.index', compact('organization', 'currencies'));
     }
 
     public function update(Request $request)
     {
-        $organization = Organization::first();
+        // dd($request->all());
+        $organization = organization::where('id', $request->id)->firstOrFail();
 
         $validated = $request->validate([
 
@@ -53,7 +54,7 @@ class OrganizationController extends Controller
             'email' => 'nullable|email|max:150',
             'website' => 'nullable|url|max:255',
 
-            'currency' => 'required|max:10',
+            'currency_id' => 'required|exists:currencies,id',
             'timezone' => 'required|max:60',
             'language' => 'required|max:30',
             'date_format' => 'required|max:20',

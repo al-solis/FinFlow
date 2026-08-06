@@ -13,6 +13,8 @@ return new class extends Migration {
     {
         Schema::create('account_types', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
             $table->string('code');
             $table->string('description');
             $table->string('range');
@@ -24,11 +26,11 @@ return new class extends Migration {
         });
 
         DB::table('account_types')->insert([
-            ['code' => 'ASSET', 'description' => 'Assets', 'range' => '1000-1999', 'created_by' => '1', 'created_at' => now()],
-            ['code' => 'LIABILITY', 'description' => 'Liabilities', 'range' => '2000-2999', 'created_by' => '1', 'created_at' => now()],
-            ['code' => 'EQUITY', 'description' => 'Equity', 'range' => '3000-3999', 'created_by' => '1', 'created_at' => now()],
-            ['code' => 'REVENUE', 'description' => 'Revenue', 'range' => '4000-4999', 'created_by' => '1', 'created_at' => now()],
-            ['code' => 'EXPENSE', 'description' => 'Expense', 'range' => '5000-6999', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'code' => 'ASSET', 'description' => 'Assets', 'range' => '1000-1999', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => 'LIABILITY', 'description' => 'Liabilities', 'range' => '2000-2999', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => 'EQUITY', 'description' => 'Equity', 'range' => '3000-3999', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => 'REVENUE', 'description' => 'Revenue', 'range' => '4000-4999', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => 'EXPENSE', 'description' => 'Expense', 'range' => '5000-6999', 'created_by' => 1, 'created_at' => now()],
         ]);
     }
 

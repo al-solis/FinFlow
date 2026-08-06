@@ -13,7 +13,9 @@ return new class extends Migration {
     {
         Schema::create('countries', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 10)->unique();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
+            $table->string('code', 10);
             $table->string('name', 100);
             $table->string('iso2', 2)->nullable();
             $table->string('iso3', 3)->nullable();
@@ -26,11 +28,11 @@ return new class extends Migration {
         });
 
         DB::table('countries')->insert([
-            ['code' => 'PH', 'name' => 'Philippines', 'iso2' => 'PH', 'iso3' => 'PHL', 'currency_code' => 'PHP', 'dial_code' => '+63', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
-            ['code' => 'US', 'name' => 'United States', 'iso2' => 'US', 'iso3' => 'USA', 'currency_code' => 'USD', 'dial_code' => '+1', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
-            ['code' => 'CA', 'name' => 'Canada', 'iso2' => 'CA', 'iso3' => 'CAN', 'currency_code' => 'CAD', 'dial_code' => '+1', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
-            ['code' => 'GB', 'name' => 'United Kingdom', 'iso2' => 'GB', 'iso3' => 'GBR', 'currency_code' => 'GBP', 'dial_code' => '+44', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
-            ['code' => 'AU', 'name' => 'Australia', 'iso2' => 'AU', 'iso3' => 'AUS', 'currency_code' => 'AUD', 'dial_code' => '+61', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
+            ['organization_id' => 1, 'code' => 'PH', 'name' => 'Philippines', 'iso2' => 'PH', 'iso3' => 'PHL', 'currency_code' => 'PHP', 'dial_code' => '+63', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
+            ['organization_id' => 1, 'code' => 'US', 'name' => 'United States', 'iso2' => 'US', 'iso3' => 'USA', 'currency_code' => 'USD', 'dial_code' => '+1', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
+            ['organization_id' => 1, 'code' => 'CA', 'name' => 'Canada', 'iso2' => 'CA', 'iso3' => 'CAN', 'currency_code' => 'CAD', 'dial_code' => '+1', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
+            ['organization_id' => 1, 'code' => 'GB', 'name' => 'United Kingdom', 'iso2' => 'GB', 'iso3' => 'GBR', 'currency_code' => 'GBP', 'dial_code' => '+44', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
+            ['organization_id' => 1, 'code' => 'AU', 'name' => 'Australia', 'iso2' => 'AU', 'iso3' => 'AUS', 'currency_code' => 'AUD', 'dial_code' => '+61', 'status' => 1, 'created_by' => 1, 'updated_by' => 1],
         ]);
     }
 

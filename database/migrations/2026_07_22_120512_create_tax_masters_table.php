@@ -13,7 +13,9 @@ return new class extends Migration {
     {
         Schema::create('tax_masters', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 20)->unique();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
+            $table->string('code', 20);
             $table->string('name', 100);
             $table->unsignedBigInteger('tax_type_id');
             $table->foreign('tax_type_id')->references('id')->on('tax_types');
@@ -21,9 +23,9 @@ return new class extends Migration {
             $table->foreign('tax_formula_id')->references('id')->on('tax_formulas');
             $table->decimal('rate', 10, 2);
             $table->decimal('fixed_amount', 10, 2)->nullable();
-            $table->string('gl_account_code', 20)->nullable();
-            // $table->unsignedBigInteger('gl_account_id');
-            // $table->foreign('gl_account_id')->references('id')->on('gl_accounts');
+            //$table->string('gl_account_code', 20)->nullable();
+            $table->unsignedBigInteger('gl_account_id')->nullable();
+            $table->foreign('gl_account_id')->references('id')->on('chart_of_accounts');
             $table->boolean('recoverable')->default(false);
             $table->integer('priority')->default(1);
             $table->dateTime('effective_from');
@@ -38,13 +40,14 @@ return new class extends Migration {
 
         DB::table('tax_masters')->insert([
             [
+                'organization_id' => 1,
                 'code' => 'VAT12',
                 'name' => '12% Input VAT',
                 'tax_type_id' => 1,
                 'tax_formula_id' => 1,
                 'rate' => 12.00,
                 'fixed_amount' => null,
-                'gl_account_code' => null,
+                'gl_account_id' => null,
                 'recoverable' => true,
                 'priority' => 1,
                 'effective_from' => now(),
@@ -56,13 +59,14 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => 'VAT12_OUT',
                 'name' => '12% Output VAT',
                 'tax_type_id' => 1,
                 'tax_formula_id' => 1,
                 'rate' => 12.00,
                 'fixed_amount' => null,
-                'gl_account_code' => null,
+                'gl_account_id' => null,
                 'recoverable' => true,
                 'priority' => 1,
                 'effective_from' => now(),
@@ -74,13 +78,14 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => 'EWT2',
                 'name' => 'Expanded Withholding Tax 2%',
                 'tax_type_id' => 2,
                 'tax_formula_id' => 3,
                 'rate' => 2.00,
                 'fixed_amount' => null,
-                'gl_account_code' => null,
+                'gl_account_id' => null,
                 'recoverable' => false,
                 'priority' => 1,
                 'effective_from' => now(),
@@ -92,13 +97,14 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => 'ENV50',
                 'name' => 'Environmental Fee',
                 'tax_type_id' => 4,
                 'tax_formula_id' => 4,
                 'rate' => 0,
                 'fixed_amount' => 50.00,
-                'gl_account_code' => null,
+                'gl_account_id' => null,
                 'recoverable' => false,
                 'priority' => 2,
                 'effective_from' => now(),

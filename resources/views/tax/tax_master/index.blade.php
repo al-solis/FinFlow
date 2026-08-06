@@ -185,7 +185,8 @@
                             <td class="px-4 py-3 text-right w-[80px]">
                                 {{ $taxMaster->fixed_amount ? number_format($taxMaster->fixed_amount, 2) : '' }}</td>
                             </td>
-                            <td class="px-4 py-3 w-[120px]">{{ $taxMaster->gl_account_code }}</td>
+                            <td class="px-4 py-3 w-[120px]">
+                                {{ $taxMaster->glAccount?->getFormattedAccountCodeAttribute() ?? '-' }}</td>
                             <td class="px-4 py-3 w-[100px] text-xs font-semibold">
                                 @php
                                     $statuses = [
@@ -211,7 +212,7 @@
                                         data-tax_formula="{{ $taxMaster->taxFormula->id }}"
                                         data-rate="{{ $taxMaster->rate }}"
                                         data-fixed_amount="{{ $taxMaster->fixed_amount }}"
-                                        data-gl_account_code="{{ $taxMaster->gl_account_code }}"
+                                        data-gl_account_id="{{ $taxMaster->gl_account_id }}"
                                         data-recoverable="{{ $taxMaster->recoverable }}"
                                         data-priority="{{ $taxMaster->priority }}"
                                         data-effective_from="{{ $taxMaster->effective_from }}"
@@ -343,14 +344,17 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="gl_account_code"
+                                <label for="gl_account_id"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">GL Account
-                                    Code*</label>
-                                <input type="text" name="gl_account_code" id="gl_account_code" maxlength="20"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. 123456" pattern="[0-9\-\.\/]*"
-                                    title="Only numbers, dashes, dots, and slashes are allowed"
-                                    oninput="this.value = this.value.replace(/[^0-9\-\.\/]/g, '')" required>
+                                    Code</label>
+                                <select id="gl_account_id" name="gl_account_id"
+                                    class="select2 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
+                                    <option value="">Select GL Account</option>
+                                    @foreach ($chartOfAccounts as $glAccount)
+                                        <option value="{{ $glAccount->id }}">{{ $glAccount->account_code }} -
+                                            {{ $glAccount->account_name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="sm:col-span-1">
@@ -509,15 +513,17 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="edit_gl_account_code"
+                                <label for="edit_gl_account_id"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">GL Account
                                     Code*</label>
-                                <input type="text" name="edit_gl_account_code" id="edit_gl_account_code"
-                                    maxlength="20"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. 123456" pattern="[0-9\-\.\/]*"
-                                    title="Only numbers, dashes, dots, and slashes are allowed"
-                                    oninput="this.value = this.value.replace(/[^0-9\-\.\/]/g, '')" required>
+                                <select id="edit_gl_account_id" name="edit_gl_account_id"
+                                    class="select2 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
+                                    <option value="">Select GL Account</option>
+                                    @foreach ($chartOfAccounts as $glAccount)
+                                        <option value="{{ $glAccount->id }}">{{ $glAccount->account_code }} -
+                                            {{ $glAccount->account_name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="sm:col-span-1">
@@ -578,6 +584,19 @@
     <!-- End edit modal -->
 
     <script>
+        $(document).ready(function() {
+            $('#gl_account_id').select2({
+                placeholder: "Select GL Account",
+                allowClear: true,
+                width: '100%'
+            });
+            $('#edit_gl_account_id').select2({
+                placeholder: "Select GL Account",
+                allowClear: true,
+                width: '100%'
+            });
+        });
+
         function clearModalFields() {
             // Clear all form fields
             const form = document.querySelector('form');
@@ -615,7 +634,7 @@
             document.getElementById('edit_rate').value = button.getAttribute('data-rate');
             document.getElementById('edit_fixed_amount').value = button.getAttribute('data-fixed_amount');
             document.getElementById('edit_recoverable').value = button.getAttribute('data-recoverable');
-            document.getElementById('edit_gl_account_code').value = button.getAttribute('data-gl_account_code');
+            document.getElementById('edit_gl_account_id').value = button.getAttribute('data-gl_account_id');
             document.getElementById('edit_effective_from').value = formatDateForInput(button.getAttribute(
                 'data-effective_from'));
             document.getElementById('edit_effective_to').value = formatDateForInput(button.getAttribute(

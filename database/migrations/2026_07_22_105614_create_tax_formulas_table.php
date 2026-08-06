@@ -13,7 +13,9 @@ return new class extends Migration {
     {
         Schema::create('tax_formulas', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 20)->unique();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
+            $table->string('code', 20);
             $table->string('name', 100);
             $table->enum('type', ['Percentage', 'FixedAmount', 'Formula'])->default('Percentage');
             $table->enum('basis', ['Gross', 'Net', 'Taxable', 'VAT'])->default('Gross');
@@ -31,6 +33,7 @@ return new class extends Migration {
 
         DB::table('tax_formulas')->insert([
             [
+                'organization_id' => 1,
                 'code' => 'VAT_EXCLUSIVE',
                 'name' => 'VAT Exclusive',
                 'type' => 'Percentage',
@@ -44,6 +47,7 @@ return new class extends Migration {
                 'updated_by' => 1,
             ],
             [
+                'organization_id' => 1,
                 'code' => 'VAT_INCLUSIVE',
                 'name' => 'VAT Inclusive',
                 'type' => 'Formula',
@@ -57,6 +61,7 @@ return new class extends Migration {
                 'updated_by' => 1,
             ],
             [
+                'organization_id' => 1,
                 'code' => 'EWT',
                 'name' => 'Expanded Withholding Tax',
                 'type' => 'Percentage',
@@ -70,6 +75,7 @@ return new class extends Migration {
                 'updated_by' => 1,
             ],
             [
+                'organization_id' => 1,
                 'code' => 'FIXED',
                 'name' => 'Fixed Fee',
                 'type' => 'FixedAmount',
@@ -83,6 +89,7 @@ return new class extends Migration {
                 'updated_by' => 1,
             ],
             [
+                'organization_id' => 1,
                 'code' => 'COMPOUND',
                 'name' => 'Compound Tax',
                 'type' => 'Formula',

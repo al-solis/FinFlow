@@ -294,7 +294,7 @@
                 <div
                     class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Update Category
+                        Update Tax Type
                     </h3>
                     <button type="button"
                         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -380,6 +380,12 @@
 
         function openEditModal(button) {
             const id = button.getAttribute('data-id');
+            const code = button.getAttribute('data-code');
+            if (code === 'EXEMPT') {
+                document.getElementById('edit_code').disabled = true;
+            } else {
+                document.getElementById('edit_code').disabled = false;
+            }
             document.getElementById('edit_id').value = button.getAttribute('data-id');
             document.getElementById('edit_name').value = button.getAttribute('data-name');
             document.getElementById('edit_code').value = button.getAttribute('data-code');

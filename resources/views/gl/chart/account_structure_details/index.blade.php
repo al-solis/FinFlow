@@ -33,8 +33,10 @@
                     </button>
                 </form>
 
-                <button data-modal-target="add-detail-modal" data-modal-toggle="add-detail-modal"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800">
+                <button {{ isset($accountStructure->last_synced_at) ? 'disabled' : '' }}
+                    data-modal-target="add-detail-modal" data-modal-toggle="add-detail-modal"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 
+                    {{ isset($accountStructure->last_synced_at) ? 'opacity-50 cursor-not-allowed' : '' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>

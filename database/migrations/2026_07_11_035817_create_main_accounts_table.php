@@ -12,6 +12,8 @@ return new class extends Migration {
     {
         Schema::create('main_accounts', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
             $table->string('code', 20);
             $table->string('description', 150);
             $table->unsignedBigInteger('account_type_id');
@@ -29,12 +31,11 @@ return new class extends Migration {
         });
 
         DB::table('main_accounts')->insert([
-            ['code' => '1000', 'description' => 'Cash on Hand', 'account_type_id' => 1, 'account_category_id' => 1, 'account_subcategory_id' => 1, 'created_by' => 1, 'created_at' => now()],
-            ['code' => '1100', 'description' => 'Accounts Receivable', 'account_type_id' => 1, 'account_category_id' => 1, 'account_subcategory_id' => 2, 'created_by' => 1, 'created_at' => now()],
-            ['code' => '2001', 'description' => 'Accounts Payable', 'account_type_id' => 2, 'account_category_id' => 3, 'account_subcategory_id' => 3, 'created_by' => 1, 'created_at' => now()],
-            ['code' => '3001', 'description' => 'Owner\'s Equity', 'account_type_id' => 3, 'account_category_id' => 5, 'account_subcategory_id' => 4, 'created_by' => 1, 'created_at' => now()],
-            ['code' => '4001', 'description' => 'Sales Revenue', 'account_type_id' => 4, 'account_category_id' => 6, 'account_subcategory_id' => 5, 'created_by' => 1, 'created_at' => now()],
-            ['code' => '5001', 'description' => 'Cost of Goods Sold', 'account_type_id' => 5, 'account_category_id' => 9, 'account_subcategory_id' => 6, 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => '1000', 'description' => 'Cash on Hand', 'account_type_id' => 1, 'account_category_id' => 1, 'account_subcategory_id' => 1, 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => '1100', 'description' => 'Accounts Receivable', 'account_type_id' => 1, 'account_category_id' => 1, 'account_subcategory_id' => 2, 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => '2001', 'description' => 'Accounts Payable', 'account_type_id' => 2, 'account_category_id' => 3, 'account_subcategory_id' => 3, 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => '3001', 'description' => 'Owner\'s Equity', 'account_type_id' => 3, 'account_category_id' => 5, 'account_subcategory_id' => 4, 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'code' => '4001', 'description' => 'Sales Revenue', 'account_type_id' => 4, 'account_category_id' => 6, 'account_subcategory_id' => 5, 'created_by' => 1, 'created_at' => now()],
         ]);
     }
 

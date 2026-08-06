@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\organization;
+use App\Models\currency;
+use App\Models\chart_of_account;
 
 class bank_account extends Model
 {
     protected $table = 'bank_accounts';
 
     protected $fillable = [
+        'organization_id',
         'code',
         'name',
         'branch',
@@ -21,6 +25,11 @@ class bank_account extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(organization::class, 'organization_id');
+    }
 
     public function currency()
     {

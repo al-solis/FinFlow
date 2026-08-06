@@ -10,6 +10,7 @@ class vendor extends Model
     protected $table = 'vendors';
 
     protected $fillable = [
+        'organization_id',
         'code',
         'name',
         'legal_name',
@@ -48,6 +49,11 @@ class vendor extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(organization::class, 'organization_id');
+    }
 
     public function category()
     {

@@ -12,7 +12,9 @@ return new class extends Migration {
     {
         Schema::create('tax_groups', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 20)->unique();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
+            $table->string('code', 20);
             $table->string('name', 100);
             $table->text('description')->nullable();
             $table->integer('status')->default(1); // 0 = Inactive, 1 = Active

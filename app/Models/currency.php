@@ -16,4 +16,5 @@ class currency extends Model
         'created_by',
         'updated_by',
     ];
+
 }

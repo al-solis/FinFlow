@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +23,8 @@ class VendorController extends Controller
 {
     public function index(Request $request)
     {
+        $settings = SystemSettings::get();
+
         $query = vendor::with('category')
             ->when($request->filled('search'), function ($q) use ($request) {
                 $search = $request->search;
@@ -42,46 +44,85 @@ class VendorController extends Controller
 
         $sort = $request->get('sort', 'name');
         $direction = $request->get('direction', 'asc');
-        $allowedSorts = ['code', 'name', 'created_at'];
+        $allowedSorts = ['code', 'name', 'created_at', 'category'];
 
         if (in_array($sort, $allowedSorts)) {
-            $query->orderBy($sort, $direction);
+            $sort = 'name';
         }
+
+        switch ($sort) {
+            case 'category':
+                $query->join('vendor_categories', 'vendors.vendor_category_id', '=', 'vendor_categories.id')
+                    ->orderBy('vendor_categories.name', $direction)
+                    ->select('vendors.*');
+                break;
+
+            default:
+                $query->orderBy($sort, $direction);
+                break;
+        }
+
+        $query->where('organization_id', $settings->id);
 
         $vendors = $query->paginate(config('app.paginate'))->withQueryString();
 
-        $vendorCategories = VendorCategory::where('status', 1)->get();
-        // dd($vendors);
+        $vendorCategories = VendorCategory::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+
         return view('ap.vendor.index', compact('vendors', 'vendorCategories'));
     }
 
     public function create()
     {
-        $vendors = vendor::all();
-        $vendorCategories = VendorCategory::where('status', 1)->get();
-
-        $currencies = currency::where('status', 1)
+        $settings = SystemSettings::get();
+        $vendors = vendor::where('organization_id', $settings->id)
+            ->where('is_active', 1)
+            ->orderBy('name')
             ->get();
 
-        $paymentTerms = term::where('status', 1)->get();
+        $currencies = currency::where('status', 1)->get();
 
-        $taxGroups = tax_group::where('status', 1)->get();
+        $vendorCategories = VendorCategory::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
 
-        $withholdingTaxes = tax_master::where('status', 1)
+        $paymentTerms = term::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        $taxGroups = tax_group::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        $withholdingTaxes = tax_master::where('organization_id', $settings->id)
+            ->where('status', 1)
             ->where('tax_type_id', '!=', 1)
             ->get();
 
-        $vatTaxes = tax_master::where('status', 1)
+        $vatTaxes = tax_master::where('organization_id', $settings->id)
+            ->where('status', 1)
             ->where('tax_type_id', '=', 1)
             ->get();
 
-        $paymentMethods = payment_method::where('status', 1)->get();
+        $paymentMethods = payment_method::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
 
-        $apAccounts = main_account::where('status', 1)
+        $apAccounts = main_account::where('organization_id', $settings->id)
+            ->where('status', 1)
             ->where('account_type_id', 2)
             ->get();
 
-        $countries = country::where('status', 1)->get();
+        $countries = country::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->get();
 
         return view('ap.vendor.create', compact(
             'vendors',
@@ -99,9 +140,25 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
+        $settings = SystemSettings::get();
+
         $request->validate([
-            'vendor_code' => 'required|string|max:50|unique:vendors,code',
-            'vendor_name' => 'required|string|max:255',
+            'vendor_code' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('vendors', 'code')->where(function ($query) use ($settings) {
+                    return $query->where('organization_id', $settings->id);
+                })
+            ],
+            'vendor_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('vendors', 'name')->where(function ($query) use ($settings) {
+                    return $query->where('organization_id', $settings->id);
+                })
+            ],
             'legal_name' => 'nullable|string|max:255',
             'is_active' => 'required|boolean',
             'vendor_category_id' => 'required|exists:vendor_categories,id',
@@ -146,6 +203,7 @@ class VendorController extends Controller
         ]);
 
         $vendor = vendor::create([
+            'organization_id' => $settings->id,
             'code' => $request->vendor_code,
             'name' => $request->vendor_name,
             'legal_name' => $request->legal_name,
@@ -173,17 +231,16 @@ class VendorController extends Controller
             'payment_term_id' => $request->payment_term_id,
             'payment_method_id' => $request->payment_method_id,
             'ap_account_id' => $request->ap_account_id,
-            'credit_limit' => $request->credit_limit,
-            'requires_po' => $request->requires_po,
-            'lead_time' => $request->lead_time,
+            'credit_limit' => $request->credit_limit ?? 0,
+            'requires_po' => $request->requires_po ?? false,
+            'lead_time' => $request->lead_time ?? 0,
             'preferred_vendor' => $request->preferred_vendor,
-            'is_active' => $request->is_active,
-            'is_blacklisted' => $request->is_blacklisted,
-            'blacklist_reason' => $request->blacklist_reason,
-            'remarks' => $request->remarks,
+            'is_active' => $request->is_active ?? true,
+            'is_blacklisted' => $request->is_blacklisted ?? false,
+            'blacklist_reason' => $request->blacklist_reason ?? null,
+            'remarks' => $request->remarks ?? null,
             'created_by' => Auth::id(),
             'updated_by' => Auth::id(),
-
         ]);
 
         // Add bank accounts
@@ -236,26 +293,46 @@ class VendorController extends Controller
 
     public function edit($id)
     {
+        $settings = SystemSettings::get();
         $vendor = vendor::with(['category', 'paymentTerm', 'bankAccounts', 'attachments'])->findOrFail($id);
 
         // Get all the dropdown data
-        $vendorCategories = VendorCategory::all();
-        $currencies = currency::all();
-        $paymentTerms = term::all();
-        $paymentMethods = payment_method::all();
+        $vendorCategories = VendorCategory::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+        $currencies = currency::where('status', 1)->get();
+        $paymentTerms = term::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        $paymentMethods = payment_method::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
         $apAccounts = $apAccounts = main_account::where('status', 1)
             ->where('account_type_id', 2)
             ->get();
-        $countries = country::all();
-        $taxGroups = tax_group::all();
-        $withholdingTaxes = tax_master::where('status', 1)
-            ->where('tax_type_id', '!=', 1)
-            ->get();
-        $vatTaxes = tax_master::where('status', 1)
-            ->where('tax_type_id', '=', 1)
+
+        $countries = country::where('organization_id', $settings->id)
+            ->where('status', 1)
             ->get();
 
-        $settings = SystemSettings::get();
+        $taxGroups = tax_group::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        $withholdingTaxes = tax_master::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->where('tax_type_id', '!=', 1)
+            ->get();
+        $vatTaxes = tax_master::where('organization_id', $settings->id)
+            ->where('status', 1)
+            ->where('tax_type_id', '=', 1)
+            ->get();
 
         return view('ap.vendor.create', compact(
             'vendor',
@@ -274,11 +351,26 @@ class VendorController extends Controller
 
     public function update(Request $request, $id)
     {
+        $settings = SystemSettings::get();
         $vendor = vendor::findOrFail($id);
 
         $request->validate([
-            'vendor_code' => 'required|string|max:50|unique:vendors,code,' . $vendor->id,
-            'vendor_name' => 'required|string|max:255',
+            'vendor_code' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('vendors', 'code')->where(function ($query) use ($settings) {
+                    return $query->where('organization_id', $settings->id);
+                })->ignore($vendor->id, 'id')
+            ],
+            'vendor_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('vendors', 'name')->where(function ($query) use ($settings) {
+                    return $query->where('organization_id', $settings->id);
+                })->ignore($vendor->id, 'id')
+            ],
             'legal_name' => 'nullable|string|max:255',
             'vendor_category_id' => 'required|exists:vendor_categories,id',
             'industry' => 'nullable|string|max:100',
@@ -316,8 +408,6 @@ class VendorController extends Controller
             'attachments.*' => 'nullable|file|max:3072|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip', // 3072 KB = 3MB
             'attachments' => 'nullable|array|max:5', // Max 5 files
         ]);
-
-
 
         $vendor->update([
             'code' => $request->vendor_code,

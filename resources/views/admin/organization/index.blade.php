@@ -57,6 +57,7 @@
                     <!-- ================================================= -->
                     <!-- BASIC INFORMATION -->
                     <!-- ================================================= -->
+                    <input type="hidden" name="id" id="id" value="{{ old('id', $organization->id) }}">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-5">
                             Basic Information
@@ -352,12 +353,12 @@
                                 <label class="block text-xs mb-2 font-medium text-gray-900 dark:text-white">
                                     Base Currency
                                 </label>
-                                <select name="currency"
+                                <select name="currency_id" id="currency_id"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
                                     @foreach ($currencies as $currency)
                                         <option value="{{ $currency->id }}"
-                                            {{ old('currency', $organization->currency_id) == $currency->id ? 'selected' : '' }}>
-                                            {{ $currency->currency_code }} - {{ $currency->currency_name }}
+                                            {{ old('currency_id', $organization->currency_id) == $currency->id ? 'selected' : '' }}>
+                                            {{ $currency->code }} - {{ $currency->name }}
                                         </option>
                                     @endforeach
                                 </select>

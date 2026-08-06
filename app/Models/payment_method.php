@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\organization;
 class payment_method extends Model
 {
     protected $table = 'payment_methods';
 
     protected $fillable = [
+        'organization_id',
         'code',
         'name',
         'description',
@@ -21,4 +22,9 @@ class payment_method extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(organization::class, 'organization_id');
+    }
 }

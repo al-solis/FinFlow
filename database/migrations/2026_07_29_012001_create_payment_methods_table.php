@@ -14,8 +14,10 @@ return new class extends Migration {
         Schema::create('payment_methods', function (Blueprint $table) {
 
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
 
-            $table->string('code', 20)->unique();
+            $table->string('code', 20);
             $table->string('name', 100);
             $table->string('description', 255)->nullable();
 
@@ -42,6 +44,7 @@ return new class extends Migration {
         DB::table('payment_methods')->insert([
 
             [
+                'organization_id' => 1,
                 'code' => 'CASH',
                 'name' => 'Cash',
                 'requires_bank' => 0,
@@ -56,6 +59,7 @@ return new class extends Migration {
             ],
 
             [
+                'organization_id' => 1,
                 'code' => 'CHECK',
                 'name' => 'Check',
                 'requires_bank' => 1,
@@ -70,6 +74,7 @@ return new class extends Migration {
             ],
 
             [
+                'organization_id' => 1,
                 'code' => 'BANK',
                 'name' => 'Bank Transfer',
                 'requires_bank' => 1,

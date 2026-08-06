@@ -12,6 +12,8 @@ return new class extends Migration {
     {
         Schema::create('account_structures', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
             $table->string('name', 60);
             $table->string('description', 120);
             $table->dateTime('start_date');

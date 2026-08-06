@@ -9,6 +9,7 @@ class term extends Model
     protected $table = 'terms';
 
     protected $fillable = [
+        'organization_id',
         'code',
         'name',
         'description',
@@ -17,4 +18,9 @@ class term extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(organization::class, 'organization_id');
+    }
 }

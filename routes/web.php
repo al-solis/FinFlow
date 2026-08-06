@@ -206,6 +206,8 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('ap')->name('ap.')->group(function () {
 
+
+
         Route::get('/vendor', [VendorController::class, 'index'])->name('vendors');
         Route::get('/vendor/create', [VendorController::class, 'create'])->name('vendors.create');
         Route::post('/vendor', [VendorController::class, 'store'])->name('vendors.store');
@@ -223,6 +225,11 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('bm')->name('bm.')->group(function () {
         Route::get('/bank', [BankAccountController::class, 'index'])->name('bank');
+        Route::get('/bank/create', [BankAccountController::class, 'create'])->name('bank.create');
+        Route::post('/bank', [BankAccountController::class, 'store'])->name('bank.store');
+
+        Route::get('/bank/{bankAccount}/edit', [BankAccountController::class, 'edit'])->name('bank.edit');
+        Route::put('/bank/{bankAccount}', [BankAccountController::class, 'update'])->name('bank.update');
     });
 
 });

@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\organization;
+use App\Models\account_structure_detail;
+use App\Models\User;
 class account_structure extends Model
 {
     protected $table = 'account_structures';
 
     protected $fillable = [
+        'organization_id',
         'name',
         'description',
         'start_date',
@@ -20,6 +23,11 @@ class account_structure extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(organization::class, 'organization_id');
+    }
 
     public function details()
     {

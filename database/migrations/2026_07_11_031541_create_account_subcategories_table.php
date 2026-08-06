@@ -13,6 +13,8 @@ return new class extends Migration {
     {
         Schema::create('account_subcategories', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
             $table->unsignedBigInteger('account_category_id');
             $table->foreign('account_category_id')->references('id')->on('account_categories');
             $table->string('description', 150);
@@ -25,23 +27,23 @@ return new class extends Migration {
         });
 
         DB::table('account_subcategories')->insert([
-            ['account_category_id' => 1, 'description' => 'Cash and Cash Equivalents', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 1, 'description' => 'Accounts Receivable', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 1, 'description' => 'Inventory', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 1, 'description' => 'Prepaid Expenses', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 1, 'description' => 'Short-term Investments', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 2, 'description' => 'Property, Plant, and Equipment', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 2, 'description' => 'Vehicles', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 2, 'description' => 'Furniture & Fixtures', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 2, 'description' => 'Computer Equipment', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 2, 'description' => 'Intangible Assets', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 2, 'description' => 'Accumulated Depreciation', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 3, 'description' => 'Common Stock', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 3, 'description' => 'Retained Earnings', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 4, 'description' => 'Sales Revenue', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 4, 'description' => 'Service Revenue', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 5, 'description' => 'Cost of Goods Sold', 'created_by' => '1', 'created_at' => now()],
-            ['account_category_id' => 5, 'description' => 'Operating Expenses', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 1, 'description' => 'Cash and Cash Equivalents', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 1, 'description' => 'Accounts Receivable', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 1, 'description' => 'Inventory', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 1, 'description' => 'Prepaid Expenses', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 1, 'description' => 'Short-term Investments', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 2, 'description' => 'Property, Plant, and Equipment', 'created_by' => 1, 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 2, 'description' => 'Vehicles', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 2, 'description' => 'Furniture & Fixtures', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 2, 'description' => 'Computer Equipment', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 2, 'description' => 'Intangible Assets', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 2, 'description' => 'Accumulated Depreciation', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 3, 'description' => 'Common Stock', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 3, 'description' => 'Retained Earnings', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 4, 'description' => 'Sales Revenue', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 4, 'description' => 'Service Revenue', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 5, 'description' => 'Cost of Goods Sold', 'created_by' => '1', 'created_at' => now()],
+            ['organization_id' => 1, 'account_category_id' => 5, 'description' => 'Operating Expenses', 'created_by' => '1', 'created_at' => now()],
         ]);
     }
 

@@ -13,6 +13,10 @@ return new class extends Migration {
         Schema::create('chart_of_accounts', function (Blueprint $table) {
 
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')
+                ->references('id')
+                ->on('organizations');
 
             // Structure used to generate this COA
             $table->unsignedBigInteger('account_structure_id');
@@ -21,7 +25,7 @@ return new class extends Migration {
                 ->on('account_structures');
 
             // Materialized account code
-            $table->string('account_code', 255)->unique();
+            $table->string('account_code', 255);
 
             $table->string('account_name', 255);
 

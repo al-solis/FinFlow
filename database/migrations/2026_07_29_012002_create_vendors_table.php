@@ -10,6 +10,8 @@ return new class extends Migration {
         Schema::create('vendors', function (Blueprint $table) {
 
             $table->id();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
 
             /*
             |--------------------------------------------------------------------------
@@ -17,7 +19,7 @@ return new class extends Migration {
             |--------------------------------------------------------------------------
             */
 
-            $table->string('code', 20)->unique();
+            $table->string('code', 20);
             $table->string('name', 150);
             $table->string('legal_name', 150)->nullable();
             $table->unsignedBigInteger('vendor_category_id');

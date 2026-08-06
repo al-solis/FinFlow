@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use App\Services\SystemSettings;
 use App\Models\term;
 
 
 class TermController extends Controller
 {
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -27,7 +35,8 @@ class TermController extends Controller
             $query->where('status', $searchstatus);
         }
 
-        $terms = $query->paginate(config('app.paginate'))
+        $terms = $query->where('organization_id', $this->getOrganizationId())
+            ->paginate(config('app.paginate'))
             ->appends(['search' => $search, 'searchstatus' => $searchstatus]);
 
         return view('admin.term.index', compact('terms'));
@@ -36,7 +45,13 @@ class TermController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'code' => 'required|max:20|unique:terms,code',
+            'code' => [
+                'required',
+                'max:20',
+                Rule::unique('terms', 'code')->where(function ($query) {
+                    return $query->where('organization_id', $this->getOrganizationId());
+                }),
+            ],
             'name' => 'required|max:100',
             'description' => 'nullable',
             'days' => 'required|integer|min:0',
@@ -44,6 +59,7 @@ class TermController extends Controller
         ]);
 
         term::create([
+            'organization_id' => $this->getOrganizationId(),
             'code' => $request->code,
             'name' => $request->name,
             'description' => $request->description,
@@ -59,7 +75,13 @@ class TermController extends Controller
     public function update(Request $request, Term $term)
     {
         $request->validate([
-            'edit_code' => 'required|max:20|unique:terms,code,' . $term->id,
+            'edit_code' => [
+                'required',
+                'max:20',
+                Rule::unique('terms', 'code')->where(function ($query) use ($term) {
+                    return $query->where('organization_id', $this->getOrganizationId());
+                })->ignore($term->id),
+            ],
             'edit_name' => 'required|max:100',
             'edit_description' => 'nullable',
             'edit_days' => 'required|integer|min:0',

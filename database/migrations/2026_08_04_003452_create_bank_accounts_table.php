@@ -12,15 +12,17 @@ return new class extends Migration {
     {
         Schema::create('bank_accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 20)->unique();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
+            $table->string('code', 20);
             $table->string('name', 100);
-            $table->string('branch', 100);
+            $table->string('branch', 100)->nullable();
             $table->string('account_name', 100);
             $table->string('account_number', 50);
             $table->unsignedBigInteger('currency_id');
             $table->foreign('currency_id')->references('id')->on('currencies');
-            $table->integer('account_type')->comment('1=Savings, 2=Current, 3=Checking, 4=Fixed Deposit, 5=Other');
-            $table->unsignedBigInteger('chart_of_account_id');
+            $table->integer('account_type')->comment('1=Savings, 2=Current, 3=Time Deposit, 4=Money Market, 5=Other');
+            $table->unsignedBigInteger('chart_of_account_id')->nullable();
             $table->foreign('chart_of_account_id')->references('id')->on('chart_of_accounts');
             $table->integer('status')->default(1)->comment('1=Active, 0=Inactive');
             $table->unsignedBigInteger('created_by');

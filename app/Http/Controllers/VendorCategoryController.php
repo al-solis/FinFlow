@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\VendorCategory;
 use Illuminate\Support\Facades\Auth;
+use App\Services\SystemSettings;
+use Illuminate\Validation\Rule;
 
 class VendorCategoryController extends Controller
 {
     public function index(Request $request)
     {
+        $settings = SystemSettings::get();
         $search = $request->input('search');
         $searchstatus = $request->input('searchstatus');
 
@@ -26,6 +29,8 @@ class VendorCategoryController extends Controller
             $query->where('status', $searchstatus);
         }
 
+        $query->where('organization_id', $settings->id);
+
         $vendorCategories = $query->paginate(config('app.paginate'))
             ->appends(['search' => $search, 'searchstatus' => $searchstatus]);
 
@@ -34,14 +39,22 @@ class VendorCategoryController extends Controller
 
     public function store(Request $request)
     {
+        $settings = SystemSettings::get();
         $request->validate([
-            'code' => 'required|max:20|unique:vendor_categories,code',
+            'code' => [
+                'required',
+                'max:20',
+                Rule::unique('vendor_categories', 'code')->where(function ($query) use ($settings) {
+                    return $query->where('organization_id', $settings->id);
+                })
+            ],
             'name' => 'required|max:100',
             'description' => 'nullable',
             'status' => 'required|boolean',
         ]);
 
         VendorCategory::create([
+            'organization_id' => $settings->id,
             'code' => $request->code,
             'name' => $request->name,
             'description' => $request->description,
@@ -55,8 +68,15 @@ class VendorCategoryController extends Controller
 
     public function update(Request $request, VendorCategory $vendorCategory)
     {
+        $settings = SystemSettings::get();
         $request->validate([
-            'edit_code' => 'required|max:20|unique:vendor_categories,code,' . $vendorCategory->id,
+            'edit_code' => [
+                'required',
+                'max:20',
+                Rule::unique('vendor_categories', 'code')->where(function ($query) use ($settings) {
+                    return $query->where('organization_id', $settings->id);
+                })->ignore($vendorCategory->id)
+            ],
             'edit_name' => 'required|max:100',
             'edit_description' => 'nullable',
             'edit_status' => 'required|boolean',

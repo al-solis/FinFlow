@@ -12,7 +12,8 @@ return new class extends Migration {
     {
         Schema::create('vendor_bank_accounts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('vendor_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('vendor_id');
+            $table->foreign('vendor_id')->references('id')->on('vendors');
             $table->string('bank_name', 150);
             $table->string('branch', 150)->nullable();
             $table->string('account_name', 150)->nullable();

@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use App\Services\SystemSettings;
 use App\Models\tax_type;
+
 
 class TaxTypeController extends Controller
 {
     public function index(Request $request)
     {
+        $settings = SystemSettings::get();
         $taxTypes = tax_type::query();
 
         $search = $request->input('search');
@@ -29,21 +34,29 @@ class TaxTypeController extends Controller
             $taxTypes->where('status', $searchstatus);
         }
 
-
-        $taxTypes = $taxTypes->orderBy('code')->paginate(config('app.paginate'));
+        $taxTypes = $taxTypes->where('organization_id', $settings->id)->orderBy('code')->paginate(config('app.paginate'));
 
         return view('tax.tax_type.index', compact('taxTypes'));
     }
 
     public function store(Request $request)
     {
+        $settings = SystemSettings::get();
+
         $request->validate([
-            'code' => 'required|unique:tax_types,code',
+            'code' => [
+                'required',
+                'max:20',
+                Rule::unique('tax_types', 'code')->where(function ($query) use ($settings) {
+                    return $query->where('organization_id', $settings->id);
+                }),
+            ],
             'name' => 'required',
             'description' => 'nullable',
         ]);
 
         tax_type::create([
+            'organization_id' => $settings->id,
             'code' => $request->code,
             'name' => $request->name,
             'description' => $request->description,
@@ -57,10 +70,18 @@ class TaxTypeController extends Controller
 
     public function update(Request $request, $id)
     {
+        $settings = SystemSettings::get();
+
         $taxType = tax_type::findOrFail($id);
 
         $request->validate([
-            'edit_code' => 'required|unique:tax_types,code,' . $taxType->id,
+            'edit_code' => [
+                'required',
+                'max:20',
+                Rule::unique('tax_types', 'code')->where(function ($query) use ($settings, $taxType) {
+                    return $query->where('organization_id', $settings->id);
+                })->ignore($taxType->id),
+            ],
             'edit_name' => 'required',
             'edit_description' => 'nullable',
             'edit_status' => 'required|in:0,1',

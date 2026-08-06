@@ -3,7 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\segment_code;
+use App\Models\organization;
 class segment extends Model
 {
     protected $table = 'segments';
@@ -16,6 +17,11 @@ class segment extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(organization::class, 'organization_id');
+    }
 
     public function segmentCodes()
     {

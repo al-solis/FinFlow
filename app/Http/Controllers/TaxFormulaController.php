@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Services\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -11,6 +11,7 @@ class TaxFormulaController extends Controller
 {
     public function index(Request $request)
     {
+        $settings = SystemSettings::get();
         $taxFormulas = tax_formula::query();
 
         $search = $request->input('search');
@@ -28,15 +29,24 @@ class TaxFormulaController extends Controller
             $taxFormulas->where('status', $searchstatus);
         }
 
-        $taxFormulas = $taxFormulas->orderBy('code')->paginate(config('app.paginate'));
+        $taxFormulas = $taxFormulas
+            ->where('organization_id', $settings->id)
+            ->orderBy('code')->paginate(config('app.paginate'));
 
         return view('tax.tax_formula.index', compact('taxFormulas'));
     }
 
     public function store(Request $request)
     {
+        $settings = SystemSettings::get();
         $request->validate([
-            'code' => 'required|max:20|unique:tax_formulas,code',
+            'code' => [
+                'required',
+                'max:20',
+                Rule::unique('tax_formulas', 'code')->where(function ($query) use ($settings) {
+                    return $query->where('organization_id', $settings->id);
+                }),
+            ],
             'name' => 'required|max:100',
             'type' => 'required|in:Percentage,FixedAmount,Formula',
             'basis' => 'required',
@@ -59,7 +69,7 @@ class TaxFormulaController extends Controller
         ]);
 
         tax_formula::create([
-
+            'organization_id' => $settings->id,
             'code' => $request->code,
             'name' => $request->name,
             'type' => $request->type,
@@ -157,10 +167,17 @@ class TaxFormulaController extends Controller
 
     public function update(Request $request, $id)
     {
+        $settings = SystemSettings::get();
         $taxFormula = tax_formula::findOrFail($id);
 
         $request->validate([
-            'edit_code' => 'required|max:20|unique:tax_formulas,code,' . $taxFormula->id,
+            'edit_code' => [
+                'required',
+                'max:20',
+                Rule::unique('tax_formulas', 'code')->where(function ($query) use ($settings, $taxFormula) {
+                    return $query->where('organization_id', $settings->id);
+                })->ignore($taxFormula->id),
+            ],
             'edit_name' => 'required|max:100',
             'edit_type' => 'required|in:Percentage,FixedAmount,Formula',
             'edit_basis' => 'required',
@@ -171,19 +188,15 @@ class TaxFormulaController extends Controller
                 'nullable',
                 'max:255',
                 function ($attribute, $value, $fail) use ($request) {
-
                     if ($request->edit_type !== 'Formula') {
                         return;
                     }
-
                     $this->validateExpression($value, $fail);
-
                 },
             ],
         ]);
 
         $taxFormula->update([
-
             'code' => $request->edit_code,
             'name' => $request->edit_name,
             'type' => $request->edit_type,
@@ -195,7 +208,6 @@ class TaxFormulaController extends Controller
             'status' => $request->edit_status,
             'updated_by' => Auth::id(),
             'updated_at' => now(),
-
         ]);
 
         return redirect()

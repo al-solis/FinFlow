@@ -13,7 +13,9 @@ return new class extends Migration {
     {
         Schema::create('tax_types', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 20)->unique();
+            $table->unsignedBigInteger('organization_id');
+            $table->foreign('organization_id')->references('id')->on('organizations');
+            $table->string('code', 20);
             $table->string('name', 100);
             $table->text('description')->nullable();
             $table->integer('status')->default(1); // 0 = Inactive, 1 = Active
@@ -26,6 +28,7 @@ return new class extends Migration {
 
         DB::table('tax_types')->insert([
             [
+                'organization_id' => 1,
                 'code' => 'VAT',
                 'name' => 'Value Added Tax',
                 'description' => 'A tax on the value added to goods and services at each stage of production or distribution.',
@@ -36,6 +39,7 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => 'EWT',
                 'name' => 'Expanded Withholding Tax',
                 'description' => 'A tax on the expanded withholding of income.',
@@ -46,6 +50,7 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => 'FWT',
                 'name' => 'Final Withholding Tax',
                 'description' => 'A tax on the final withholding of income.',
@@ -56,6 +61,7 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => 'LT',
                 'name' => 'Local Tax',
                 'description' => 'A tax on local transactions.',
@@ -66,9 +72,21 @@ return new class extends Migration {
                 'updated_at' => now(),
             ],
             [
+                'organization_id' => 1,
                 'code' => 'DST',
                 'name' => 'Documentary Stamp Tax',
                 'description' => 'A tax on documents.',
+                'status' => 1,
+                'created_by' => 1,
+                'updated_by' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'organization_id' => 1,
+                'code' => 'EXEMPT',
+                'name' => 'Tax Exempt',
+                'description' => 'A tax-exempt status for certain goods and services.',
                 'status' => 1,
                 'created_by' => 1,
                 'updated_by' => 1,
