@@ -3,12 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\organization;
+use App\Models\account_type;
+use App\Models\account_category;
+use App\Models\account_subcategory;
 
 class main_account extends Model
 {
     protected $table = 'main_accounts';
 
     protected $fillable = [
+        'organization_id',
         'code',
         'description',
         'account_type_id',
@@ -18,6 +23,11 @@ class main_account extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(organization::class, 'organization_id');
+    }
 
     public function accountType()
     {

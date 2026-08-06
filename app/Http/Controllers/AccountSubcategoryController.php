@@ -4,22 +4,35 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use App\Services\SystemSettings;
 use App\Models\account_subcategory;
 use App\Models\account_category;
 
 class AccountSubcategoryController extends Controller
 {
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
     public function index(Request $request)
     {
         $search = $request->input('search');
         $searchstatus = $request->input('searchstatus');
         $searchcategory = $request->input('searchcategory');
 
-        $accountCategories = account_category::all();
-        $accountSubcategories = account_subcategory::all();
-        $totalSubCategories = account_subcategory::count();
-        $activeSubCategories = account_subcategory::where('status', '1')->count();
-        $inactiveSubCategories = account_subcategory::where('status', '0')->count();
+        $accountCategories = account_category::where('organization_id', $this->getOrganizationId())
+            ->where('status', 1)
+            ->get();
+
+        $accountSubcategories = account_subcategory::where('organization_id', $this->getOrganizationId())
+            ->where('status', 1)
+            ->get();
+
+        $totalSubCategories = account_subcategory::where('organization_id', $this->getOrganizationId())->count();
+        $activeSubCategories = account_subcategory::where('organization_id', $this->getOrganizationId())->where('status', '1')->count();
+        $inactiveSubCategories = account_subcategory::where('organization_id', $this->getOrganizationId())->where('status', '0')->count();
 
         $query = account_subcategory::query();
 
@@ -37,7 +50,8 @@ class AccountSubcategoryController extends Controller
             $query->where('status', $searchstatus);
         }
 
-        $subcategories = $query->paginate(env('APP_PAGINATE_PER_PAGE', 10))
+        $subcategories = $query->where('organization_id', $this->getOrganizationId())
+            ->paginate(env('APP_PAGINATE_PER_PAGE', 10))
             ->appends([
                 'search' => $search,
                 'searchcategory' => $searchcategory,
@@ -56,6 +70,7 @@ class AccountSubcategoryController extends Controller
         ]);
 
         account_subcategory::create([
+            'organization_id' => $this->getOrganizationId(),
             'account_category_id' => $request->category,
             'description' => $request->description,
             'status' => $request->status,

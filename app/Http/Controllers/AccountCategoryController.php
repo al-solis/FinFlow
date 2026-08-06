@@ -4,23 +4,37 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use App\Services\SystemSettings;
 use App\Models\account_category;
 use App\Models\main_account;
 use App\Models\account_type;
 
 class AccountCategoryController extends Controller
 {
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
     public function index(Request $request)
     {
         $search = $request->input('search');
         $searchstatus = $request->input('searchstatus');
         $searchtype = $request->input('searchtype');
 
-        $accountTypes = account_type::all();
-        $accountCategories = account_category::all();
-        $totalCategories = account_category::count();
-        $activeCategories = account_category::where('status', '1')->count();
-        $inactiveCategories = account_category::where('status', '0')->count();
+        $accountTypes = account_type::where('organization_id', $this->getOrganizationId())
+            ->orderBy('code')
+            ->get();
+
+        $accountCategories = account_category::where('organization_id', $this->getOrganizationId())
+            ->where('status', 1)
+            ->orderBy('account_type_id')
+            ->get();
+
+        $totalCategories = account_category::where('organization_id', $this->getOrganizationId())->count();
+        $activeCategories = account_category::where('organization_id', $this->getOrganizationId())->where('status', '1')->count();
+        $inactiveCategories = account_category::where('organization_id', $this->getOrganizationId())->where('status', '0')->count();
 
         $query = account_category::query();
 
@@ -38,7 +52,9 @@ class AccountCategoryController extends Controller
             $query->where('status', $searchstatus);
         }
 
-        $categories = $query->paginate(env('APP_PAGINATE_PER_PAGE', 10))
+        $categories = $query
+            ->where('organization_id', $this->getOrganizationId())
+            ->paginate(env('APP_PAGINATE_PER_PAGE', 10))
             ->appends([
                 'search' => $search,
                 'searchtype' => $searchtype,
@@ -57,6 +73,7 @@ class AccountCategoryController extends Controller
         ]);
 
         account_category::create([
+            'organization_id' => $this->getOrganizationId(),
             'account_type_id' => $request->type,
             'description' => $request->description,
             'status' => $request->status,
