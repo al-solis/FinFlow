@@ -10,6 +10,7 @@ class segment extends Model
     protected $table = 'segments';
 
     protected $fillable = [
+        'organization_id',
         'code',
         'description',
         'length',

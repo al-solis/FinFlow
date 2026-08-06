@@ -4,19 +4,26 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use App\Services\SystemSettings;
 use App\Models\segment;
 use App\Models\segment_code;
 
 class SegmentController extends Controller
 {
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
     public function index(Request $request)
     {
         $search = $request->input('search');
         $searchstatus = $request->input('searchstatus');
 
-        $totalSegments = segment::count();
-        $activeSegments = segment::where('status', '1')->count();
-        $inactiveSegments = segment::where('status', '0')->count();
+        $totalSegments = segment::where('organization_id', $this->getOrganizationId())->count();
+        $activeSegments = segment::where('status', '1')->where('organization_id', $this->getOrganizationId())->count();
+        $inactiveSegments = segment::where('status', '0')->where('organization_id', $this->getOrganizationId())->count();
 
         $query = segment::query();
 
@@ -32,7 +39,9 @@ class SegmentController extends Controller
             $query->where('status', $searchstatus);
         }
 
-        $segments = $query->paginate(env('APP_PAGINATE_PER_PAGE', 10))
+        $segments = $query
+            ->where('organization_id', $this->getOrganizationId())
+            ->paginate(env('APP_PAGINATE_PER_PAGE', 10))
             ->appends([
                 'search' => $search,
                 'searchstatus' => $searchstatus,
@@ -44,13 +53,20 @@ class SegmentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'code' => 'required|unique:segments,code',
+            'code' => [
+                'required',
+                'max:20',
+                Rule::unique('segments', 'code')->where(function ($query) {
+                    return $query->where('organization_id', $this->getOrganizationId());
+                }),
+            ],
             'description' => 'required',
             'length' => 'required|integer|min:1|max:10',
             'status' => 'required|integer'
         ]);
 
         segment::create([
+            'organization_id' => $this->getOrganizationId(),
             'code' => $request->code,
             'description' => $request->description,
             'length' => $request->length,
@@ -67,7 +83,13 @@ class SegmentController extends Controller
         $segment = segment::findOrFail($id);
 
         $request->validate([
-            'edit_code' => 'required|unique:segments,code,' . $segment->id,
+            'edit_code' => [
+                'required',
+                'max:20',
+                Rule::unique('segments', 'code')->where(function ($query) use ($segment) {
+                    return $query->where('organization_id', $segment->organization_id)->where('id', '!=', $segment->id);
+                }),
+            ],
             'edit_description' => 'required',
             'edit_length' => 'required|integer|min:1|max:10',
             'edit_status' => 'required|integer'

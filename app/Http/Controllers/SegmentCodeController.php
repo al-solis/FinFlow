@@ -21,9 +21,12 @@ class SegmentCodeController extends Controller
 
     public function store(Request $request, $segmentId)
     {
+        $segment = segment::findOrFail($segmentId);
         $request->validate([
             'code' => [
                 'required',
+                'min:' . $segment->length,
+                'max:' . $segment->length,
                 Rule::unique('segment_codes', 'code')
                     ->where(fn($query) => $query->where('segment_id', $segmentId)),
             ],
@@ -55,6 +58,8 @@ class SegmentCodeController extends Controller
             // 'edit_code' => 'required|min:' . $segment->length . '|max:' . $segment->length . '|unique:segment_codes,code,' . $id,
             'edit_code' => [
                 'required',
+                'min:' . $segment->length,
+                'max:' . $segment->length,
                 'size:' . $segment->length,
                 Rule::unique('segment_codes', 'code')
                     ->where(fn($query) => $query->where('segment_id', $segmentCode->segment_id))
