@@ -11,6 +11,11 @@ use App\Models\segment;
 
 class AccountStructureDetailController extends Controller
 {
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
     public function index($accountStructureId)
     {
         $settings = SystemSettings::get();
@@ -30,18 +35,28 @@ class AccountStructureDetailController extends Controller
             ]);
         }
 
+        // $details = account_structure_detail::with('segment')
+        //     ->whereHas('segment', function ($q) {
+        //         $q->where('organization_id', $this->getOrganizationId())
+        //             ->where('status', 1);
+        //     })
+        //     ->where('account_structure_id', $accountStructure->id)
+        //     ->orderBy('sequence')
+        //     ->get();
         $details = account_structure_detail::with('segment')
             ->where('account_structure_id', $accountStructure->id)
             ->orderBy('sequence')
             ->get();
 
+        // dd($details);
         $usedSegmentIds = $details->pluck('segment_id')->filter();
 
-        $availableSegments = segment::whereNotIn('id', $usedSegmentIds)
+        $availableSegments = segment::where('organization_id', $this->getOrganizationId())
+            ->whereNotIn('id', $usedSegmentIds)
             ->where('status', 1)
             ->get();
 
-        return view('gl.chart.account_structure_details.index', compact('accountStructure', 'details', 'availableSegments', 'settings'));
+        return view('gl.chart.account_structure_details.index', compact('accountStructure', 'details', 'availableSegments', 'glExists', 'settings'));
     }
 
     public function store(Request $request, $accountStructureId)

@@ -152,7 +152,7 @@
                                         </div>
                                         <div>
                                             <!-- Bank Name with Drawer Trigger -->
-                                            <div class="font-medium text-gray-800 hover:text-blue-600 cursor-pointer transition-colors duration-200"
+                                            <div class="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors duration-200"
                                                 data-drawer-target="drawer-bank-{{ $bankAccount->id }}"
                                                 data-drawer-show="drawer-bank-{{ $bankAccount->id }}"
                                                 data-drawer-placement="right"

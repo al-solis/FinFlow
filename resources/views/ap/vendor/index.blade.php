@@ -1,12 +1,32 @@
 @extends('dashboard')
 @section('title', 'Vendor Master')
 @section('content')
+    @php
+        use App\Services\SystemSettings;
+    @endphp
     <div class="mx-auto max-w-7xl">
 
         @if (session('success'))
-            <div id="alert-message"
-                class="mt-5 mb-5 rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-800">
-                {{ session('success') }}
+            <div id="success-alert"
+                class="mt-3 mb-3 rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800 shadow-sm transition-all duration-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="h-4 w-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        {{ session('success') }}
+                    </div>
+
+                    <button type="button" onclick="this.closest('[id$=-alert]').style.display='none'"
+                        class="text-green-600 hover:text-green-800 transition-colors duration-200">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         @endif
 
@@ -105,6 +125,9 @@
                                 ])
                             </th>
                             <th class="px-3 py-3 text-left">Payment Term</th>
+                            <th class="px-3 py-3 text-left">AP Control Account</th>
+                            <th class="px-3 py-3 text-left">Invoices</th>
+                            <th class="px-3 py-3 text-left">Balance</th>
                             <th class="px-3 py-3 text-center">Status</th>
                             <th class="px-3 py-3 text-right w-16">Actions</th>
                         </tr>
@@ -153,6 +176,15 @@
                                 </td>
                                 <td class="px-3 py-3 text-gray-600">
                                     {{ $vendor->paymentTerm->name ?? '—' }}
+                                </td>
+                                <td class="px-3 py-3 text-gray-600">
+                                    {{ $vendor->defaultApChartOfAccount?->getFormattedAccountCodeAttribute() ?? '—' }}
+                                </td>
+                                <td class="px-3 py-3 text-right text-gray-600">
+                                    {{ SystemSettings::formatCurrency($vendor->getInvoiceTotalAmountAttribute() ?? '—') }}
+                                </td>
+                                <td class="px-3 py-3 text-right text-gray-600">
+                                    {{ SystemSettings::formatCurrency($vendor->getInvoiceBalanceAttribute() ?? '—') }}
                                 </td>
                                 <td class="px-3 py-3 text-center">
                                     @if ($vendor->is_active)

@@ -288,9 +288,10 @@
                                 <label for="account_code"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Account
                                     Code*</label>
-                                <input type="text" name="account_code" id="account_code"
+                                <input type="text" name="account_code" id="account_code" pattern ="[0-9\-]+"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. 1000" required>
+                                    placeholder="e.g. 1000 or 1000-001"
+                                    oninput="this.value = this.value.replace(/[^0-9\-]/g, '')" required>
                             </div>
 
                             <div class="sm:col-span-2">
@@ -401,9 +402,10 @@
                                 <label for="edit_account_code"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">Account
                                     Code*</label>
-                                <input type="text" name="edit_account_code" id="edit_account_code"
+                                <input type="text" name="edit_account_code" id="edit_account_code" pattern="[0-9\-]+"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                                    placeholder="e.g. 1000" required>
+                                    placeholder="e.g. 1000 or 1000-001"
+                                    oninput="this.value = this.value.replace(/[^0-9\-]/g, '')" required>
                             </div>
 
                             <div class="sm:col-span-2">
@@ -464,8 +466,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" @if (Auth::user()->role == 2) disabled @endif
-                            class="btn-Update mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 {{ Auth::user()->role == 2 ? ' cursor-not-allowed' : '' }}">
+                        <button type="submit" @if (Auth::user()->role == '2') disabled @endif
+                            class="btn-Update mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 {{ Auth::user()->role == '2' ? ' cursor-not-allowed' : '' }}">
                             {{-- <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> --}}
                             Update Account
                         </button>

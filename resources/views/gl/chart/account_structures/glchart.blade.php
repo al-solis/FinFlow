@@ -185,7 +185,7 @@
                                     value="{{ $account->id }}">
                             </td>
                             <td class="px-4 py-3 font-mono font-medium text-gray-900">
-                                {{ $account->account_code }}
+                                {{ $account->getFormattedAccountCodeAttribute() }}
                             </td>
                             <td class="px-4 py-3">
                                 <span class="account-name-display">{{ $account->account_name }}</span>
@@ -216,7 +216,7 @@
                                 <div class="flex items-center justify-center gap-2">
                                     <button type="button" title="Edit account" data-modal-target="edit-modal"
                                         data-modal-toggle="edit-modal" data-id="{{ $account->id }}"
-                                        data-code="{{ $account->account_code }}"
+                                        data-code="{{ $account->getFormattedAccountCodeAttribute() }}"
                                         data-name="{{ $account->account_name }}"
                                         data-status="{{ $account->status ? '1' : '0' }}" onclick="openEditModal(this)"
                                         class="text-blue-600 hover:text-blue-800 transition-colors">
@@ -334,7 +334,7 @@
     <form id="bulkStatusForm" method="POST" action="{{ route('gl.chart_of_accounts.bulk_status', $accountStructure) }}"
         style="display:none;">
         @csrf
-        <input type="hidden" name="account_ids" id="bulkAccountIds">
+        <input type="hidden" name="account_ids[]" id="bulkAccountIds">
         <input type="hidden" name="status" id="bulkStatus">
     </form>
 
@@ -481,9 +481,25 @@
             const checked = document.querySelectorAll('.account-checkbox:checked');
             const ids = Array.from(checked).map(cb => cb.value);
 
-            document.getElementById('bulkAccountIds').value = JSON.stringify(ids);
+            // For array format, we need to set each value individually
+            // Or we can use a different approach with a form data object
+            const form = document.getElementById('bulkStatusForm');
+            const hiddenInput = document.getElementById('bulkAccountIds');
+
+            // Clear previous values
+            form.querySelectorAll('input[name="account_ids[]"]').forEach(el => el.remove());
+
+            // Add each ID as a separate input
+            ids.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'account_ids[]';
+                input.value = id;
+                form.appendChild(input);
+            });
+
             document.getElementById('bulkStatus').value = status;
-            document.getElementById('bulkStatusForm').submit();
+            form.submit();
         }
     </script>
 

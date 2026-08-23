@@ -47,7 +47,7 @@
 
         {{-- Preview --}}
         @php
-            $exampleMainAccount = \App\Models\main_account::first();
+            $exampleMainAccount = \App\Models\main_account::where('organization_id', $settings->id)->first();
             $previewParts = $details->map(function ($d) use ($exampleMainAccount) {
                 return $d->source_type === 'main_account'
                     ? $exampleMainAccount->code ?? '1000'

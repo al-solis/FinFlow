@@ -16,9 +16,15 @@ use App\Models\account_subcategory as AccountSubcategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\SystemSettings;
 
 class ChartOfAccountsService
 {
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
     /**
      * Generate or synchronize chart of accounts for a given account structure.
      *
@@ -103,11 +109,13 @@ class ChartOfAccountsService
             }
 
             // Update account structure status
-            $accountStructure->update([
-                'status' => 1, // Generated
-                'last_synced_at' => now(),
-                'last_synced_by' => $userId,
-            ]);
+            if ($stats['created'] > 0 || $stats['updated'] > 0) {
+                $accountStructure->update([
+                    'status' => 1, // Generated
+                    'last_synced_at' => now(),
+                    'last_synced_by' => $userId,
+                ]);
+            }
 
             DB::commit();
 
@@ -146,17 +154,18 @@ class ChartOfAccountsService
 
             if ($detail->source_type === 'main_account') {
                 // Get all main accounts
-                $values = MainAccount::where('status', 1)->get()->map(function ($account) {
-                    return [
-                        'value_id' => $account->id,
-                        'code' => $account->code,
-                        'name' => $account->description,
-                        'source_type' => 'main_account',
-                        'account_type_id' => $account->account_type_id,
-                        'account_category_id' => $account->account_category_id,
-                        'account_subcategory_id' => $account->account_subcategory_id,
-                    ];
-                })->toArray();
+                $values = MainAccount::where('organization_id', $this->getOrganizationId())
+                    ->where('status', 1)->get()->map(function ($account) {
+                        return [
+                            'value_id' => $account->id,
+                            'code' => $account->code,
+                            'name' => $account->description,
+                            'source_type' => 'main_account',
+                            'account_type_id' => $account->account_type_id,
+                            'account_category_id' => $account->account_category_id,
+                            'account_subcategory_id' => $account->account_subcategory_id,
+                        ];
+                    })->toArray();
             } else {
                 // Get segment codes for this segment
                 $segment = Segment::find($detail->segment_id);
@@ -330,6 +339,7 @@ class ChartOfAccountsService
 
         // Create the chart of account
         $chartAccount = ChartOfAccount::create([
+            'organization_id' => $this->getOrganizationId(),
             'account_structure_id' => $accountStructure->id,
             'account_code' => $accountCode,
             'account_name' => $accountName,
@@ -453,7 +463,8 @@ class ChartOfAccountsService
         }
 
         // Check if there are active main accounts
-        $hasActiveAccounts = MainAccount::where('status', 1)->exists();
+        $hasActiveAccounts = MainAccount::where('organization_id', $this->getOrganizationId())
+            ->where('status', 1)->exists();
         if (!$hasActiveAccounts) {
             $issues[] = 'No active main accounts found.';
         }
@@ -478,7 +489,8 @@ class ChartOfAccountsService
 
         foreach ($details as $detail) {
             if ($detail->source_type === 'main_account') {
-                $valuesCount = MainAccount::where('status', 1)->count();
+                $valuesCount = MainAccount::where('organization_id', $this->getOrganizationId())
+                    ->where('status', 1)->count();
             } else {
                 $segment = Segment::find($detail->segment_id);
                 if ($segment) {

@@ -126,4 +126,10 @@ return [
     // Pagination per page setting
     'paginate' => env('APP_PAGINATE_PER_PAGE', 10),
 
+    'currency' => env('APP_CURRENCY', 'PHP'),
+    'currency_symbol' => env('APP_CURRENCY_SYMBOL', '₱'),
+    'decimal_places' => env('APP_DECIMAL_PLACES', 2),
+    'thousands_separator' => env('APP_THOUSANDS_SEPARATOR', ','),
+    'decimal_separator' => env('APP_DECIMAL_SEPARATOR', '.'),
+
 ];

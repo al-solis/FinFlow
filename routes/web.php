@@ -23,6 +23,14 @@ use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\ChartOfAccountController;
 use App\Http\Controllers\BankAccountController;
+use App\Http\Controllers\RfdHeaderController;
+use App\Http\Controllers\ApprovalWorkflowController;
+use App\Http\Controllers\RfdController;
+use App\Http\Controllers\DisbursementController;
+use App\Http\Controllers\TrialBalanceController;
+use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\GeneralLedgerController;
+use App\Http\Controllers\BankReconciliationController;
 
 
 Route::get('/', function () {
@@ -67,6 +75,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals.index');
+    Route::get('/ap/rfd/approval/{transaction}', [RfdController::class, 'showApproval'])->name('ap.rfd.showApproval');
+    Route::post('/approvals/{transaction}/approve', [RfdController::class, 'approve'])->name('approvals.approve');
+    Route::post('/approvals/{transaction}/return', [RfdController::class, 'returnToRequester'])->name('approvals.return');
+    Route::post('/approvals/{transaction}/reject', [RfdController::class, 'reject'])->name('approvals.reject');
 
     Route::prefix('tax')->name('tax.')->group(function () {
         Route::get('/tax_type', [TaxTypeController::class, 'index'])->name('ty');
@@ -185,6 +199,9 @@ Route::middleware('auth')->group(function () {
 
         // Account Structure Update Route (generic - should be last)
         Route::put('/chart/account_structures/{id}', [AccountStructureController::class, 'update'])->name('structure.update');
+
+        Route::get('/general-ledger', [GeneralLedgerController::class, 'index'])->name('gr');
+        Route::get('/trial-balance', [TrialBalanceController::class, 'index'])->name('trial');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
@@ -206,7 +223,15 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('ap')->name('ap.')->group(function () {
 
-
+        Route::get('/rfd', [RfdController::class, 'index'])->name('rfd');
+        Route::get('/rfd/create', [RfdController::class, 'create'])->name('rfd.create');
+        Route::post('/rfd', [RfdController::class, 'store'])->name('rfd.store');
+        Route::get('/rfd/{rfd}/edit', [RfdController::class, 'edit'])->name('rfd.edit');
+        Route::put('/rfd/{rfd}', [RfdController::class, 'update'])->name('rfd.update');
+        Route::get('rfd/attachment/{attachment}/download', [RfdController::class, 'downloadAttachment'])
+            ->name('rfd.download-attachment');
+        Route::delete('rfd/attachment/{attachment}', [RfdController::class, 'deleteAttachment'])
+            ->name('rfd.delete-attachment');
 
         Route::get('/vendor', [VendorController::class, 'index'])->name('vendors');
         Route::get('/vendor/create', [VendorController::class, 'create'])->name('vendors.create');
@@ -223,6 +248,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/vendor/category/{vendorCategory}', [VendorCategoryController::class, 'update'])->name('categories.update');
     });
 
+    Route::prefix('cm')->name('cm.')->group(function () {
+        Route::get('/disbursement', [DisbursementController::class, 'index'])->name('dv');
+        Route::get('/disbursement/{rfd}', [DisbursementController::class, 'show'])->name('cash.disbursement.show');
+        Route::post('/disbursement/{rfd}/disburse', [DisbursementController::class, 'disburse'])->name('cash.disbursement.disburse');
+    });
+
     Route::prefix('bm')->name('bm.')->group(function () {
         Route::get('/bank', [BankAccountController::class, 'index'])->name('bank');
         Route::get('/bank/create', [BankAccountController::class, 'create'])->name('bank.create');
@@ -230,7 +261,22 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/bank/{bankAccount}/edit', [BankAccountController::class, 'edit'])->name('bank.edit');
         Route::put('/bank/{bankAccount}', [BankAccountController::class, 'update'])->name('bank.update');
+
+        Route::get('/recon', [BankReconciliationController::class, 'index'])->name('recon');
+        Route::post('/recon/upload', [BankReconciliationController::class, 'upload'])->name('recon.upload');
+        Route::get('/recon/{import}', [BankReconciliationController::class, 'review'])->name('recon.review');
+        Route::post('/recon/{import}/post', [BankReconciliationController::class, 'post'])->name('recon.post');
+
     });
+
+    Route::prefix('appw')->name('appw.')->group(function () {
+        Route::get('/approval_workflows', [ApprovalWorkflowController::class, 'index'])->name('appr');
+        Route::get('/approval_workflows/create', [ApprovalWorkflowController::class, 'create'])->name('create');
+        Route::post('/approval_workflows', [ApprovalWorkflowController::class, 'store'])->name('store');
+        Route::get('/approval_workflows/{approval_workflow}/edit', [ApprovalWorkflowController::class, 'edit'])->name('edit');
+        Route::put('/approval_workflows/{approval_workflow}', [ApprovalWorkflowController::class, 'update'])->name('update');
+    });
+
 
 });
 

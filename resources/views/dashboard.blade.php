@@ -28,6 +28,14 @@
                         alt="external-Approved-start-up-beshi-glyph-kerismaker" />
                     <span class="text-xs mt-1">My Requests</span>
                 </a>
+                <a href="{{ route('approvals.index') }}"
+                    title ="List of requests pending approval and their current status"
+                    class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-sm text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200">
+                    {{-- <img src="{{ asset('images/to-do.gif') }}" alt="My Requests" class="w-12 h-12 object-contain"> --}}
+                    <img width="32" height="32" src="{{ asset('icons/approvals.png') }}"
+                        alt="external-Approved-start-up-beshi-glyph-kerismaker" />
+                    <span class="text-xs mt-1">Approvals</span>
+                </a>
                 {{-- @foreach ($modules as $module)
                     <a href="" title ="{{ $module->description }}"
                         class="py-1.5 px-2.5 flex flex-col items-center gap-x-1.5 text-sm text-gray-800 bg-gray-100 hover:text-cyan-700 rounded-lg focus:outline-hidden focus:text-cyan-700  hover:bg-gray-200">

@@ -4,22 +4,48 @@
     <div class="max-w-7xl mx-auto">
 
         @if (session('success'))
-            <div id = "alert-message" class="p-4 mb-2 mt-2 text-green-800 border border-green-300 rounded-lg bg-green-50">
-                {{ session('success') }}
+            <div id="success-alert"
+                class="mt-3 mb-3 rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800 shadow-sm transition-all duration-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="h-4 w-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        {{ session('success') }}
+                    </div>
+                    <button type="button" onclick="this.closest('[id$=-alert]').style.display='none'"
+                        class="text-green-600 hover:text-green-800 transition-colors duration-200">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         @endif
 
-        @if ($errors->any())
-            <div id="alert-message" class="p-4 mb-2 mt-2 text-red-800 border border-red-300 rounded-lg bg-red-50">
-                <div class="font-semibold mb-2">
-                    Please correct the following errors:
+        @if (session('error'))
+            <div id="error-alert"
+                class="mt-3 mb-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 shadow-sm transition-all duration-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="h-4 w-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        {{ session('error') }}
+                    </div>
+                    <button type="button" onclick="this.closest('[id$=-alert]').style.display='none'"
+                        class="text-red-600 hover:text-red-800 transition-colors duration-200">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
-
-                <ul class="list-disc list-inside text-sm">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
             </div>
         @endif
 
@@ -433,10 +459,12 @@
                                 </label>
                                 <select name="number_format"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
-                                    <option
-                                        value="1,234.56 {{ old('number_format', $organization->number_format) == '1,234.56' ? 'selected' : '' }}">
+                                    <option value="1,234.56"
+                                        {{ old('number_format', $organization->number_format) == '1,234.56' ? 'selected' : '' }}>
                                         1,234.56</option>
-                                    <option value="1.234,56">1.234,56</option>
+                                    <option value="1.234,56"
+                                        {{ old('number_format', $organization->number_format) == '1.234,56' ? 'selected' : '' }}>
+                                        1.234,56</option>
                                 </select>
                             </div>
 
@@ -575,20 +603,15 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const alert = document.getElementById('alert-message');
-
-            if (alert) {
-                setTimeout(() => {
-                    alert.style.transition = 'opacity 0.5s ease';
-                    alert.style.opacity = '0';
-
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 500);
-                }, 3000);
-            }
-        });
+        // document.querySelectorAll('[id$="-alert"]').forEach(alert => {
+        //     setTimeout(() => {
+        //         alert.style.transition = 'opacity 0.5s ease';
+        //         alert.style.opacity = '0';
+        //         setTimeout(() => {
+        //             alert.style.display = 'none';
+        //         }, 500);
+        //     }, 5000);
+        // });
 
         document.addEventListener('DOMContentLoaded', function() {
 

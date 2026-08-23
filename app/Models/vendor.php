@@ -4,6 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Models\organization;
+use App\Models\payment_method;
+use App\Models\term;
+use App\Models\currency;
+use App\Models\VendorCategory;
+use App\Models\tax_group;
+use App\Models\main_account;
+use App\Models\chart_of_account;
+use App\Models\vendor_bank_account;
+use App\Models\vendor_attachment;
+use App\Models\ap_invoice;
+use App\Models\ap_invoice_line;
+use App\Models\ap_payment;
+use App\Models\account_structure;
 
 class vendor extends Model
 {
@@ -38,6 +52,7 @@ class vendor extends Model
         'payment_term_id',
         'payment_method_id',
         'ap_account_id',
+        'default_ap_chart_of_account_id',
         'credit_limit',
         'requires_po',
         'lead_time',
@@ -95,6 +110,11 @@ class vendor extends Model
         return $this->hasMany(vendor_attachment::class, 'vendor_id');
     }
 
+    public function defaultApChartOfAccount()
+    {
+        return $this->belongsTo(chart_of_account::class, 'default_ap_chart_of_account_id');
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -103,6 +123,40 @@ class vendor extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function getInvoiceTotalAmountAttribute()
+    {
+        $accountStructure = account_structure::where('organization_id', $this->organization_id)
+            ->where('is_default', true)
+            ->first();
+        
+        if (!$accountStructure) {
+            return 0; 
+        }
+
+        return ap_invoice::where('organization_id', $this->organization_id)
+            ->where('vendor_id', $this->id)
+            ->whereDate('invoice_date', '>=', $accountStructure->start_date)
+            ->whereDate('invoice_date', '<=', $accountStructure->end_date)
+            ->sum('net_amount');
+    }
+
+    public function getInvoiceBalanceAttribute()
+    {
+        $accountStructure = account_structure::where('organization_id', $this->organization_id)
+            ->where('is_default', true)
+            ->first();
+        
+        if (!$accountStructure) {
+            return 0; 
+        }
+
+        return ap_invoice::where('organization_id', $this->organization_id)
+            ->where('vendor_id', $this->id)
+            ->whereDate('invoice_date', '>=', $accountStructure->start_date)
+            ->whereDate('invoice_date', '<=', $accountStructure->end_date)
+            ->sum('amount_due');
     }
 
 }

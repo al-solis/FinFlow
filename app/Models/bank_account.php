@@ -40,4 +40,5 @@ class bank_account extends Model
     {
         return $this->belongsTo(chart_of_account::class, 'chart_of_account_id');
     }
+
 }

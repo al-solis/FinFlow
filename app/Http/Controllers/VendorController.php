@@ -18,6 +18,9 @@ use App\Models\main_account;
 use App\Models\vendor_bank_account;
 use App\Models\country;
 use App\Models\vendor_attachment;
+use App\Models\chart_of_account;
+use App\Models\ap_invoice;
+use App\Models\ap_invoice_line;
 
 class VendorController extends Controller
 {
@@ -115,9 +118,17 @@ class VendorController extends Controller
             ->orderBy('name')
             ->get();
 
-        $apAccounts = main_account::where('organization_id', $settings->id)
+        // $apAccounts = main_account::where('organization_id', $settings->id)
+        //     ->where('status', 1)
+        //     ->where('account_type_id', 2)
+        //     ->get();
+        $apAccounts = chart_of_account::with('accountType')
+            ->whereHas('accountType', function ($q) use ($settings) {
+                $q->where('organization_id', $settings->id)
+                    ->where('code', 'LIABILITY');
+            })
+            ->where('organization_id', $settings->id)
             ->where('status', 1)
-            ->where('account_type_id', 2)
             ->get();
 
         $countries = country::where('organization_id', $settings->id)
@@ -134,7 +145,8 @@ class VendorController extends Controller
             'vatTaxes',
             'paymentMethods',
             'apAccounts',
-            'countries'
+            'countries',
+            'settings',
         ));
     }
 
@@ -184,7 +196,8 @@ class VendorController extends Controller
             'currency_id' => 'nullable|exists:currencies,id',
             'payment_term_id' => 'nullable|exists:terms,id',
             'payment_method_id' => 'nullable|exists:payment_methods,id',
-            'ap_account_id' => 'nullable|exists:main_accounts,id',
+            // 'ap_account_id' => 'nullable|exists:main_accounts,id',
+            'default_ap_chart_of_account_id' => 'nullable|exists:chart_of_accounts,id',
             // Bank validation
             'banks' => 'nullable|array',
             'banks.*.bank_name' => 'nullable|string|max:255',
@@ -230,7 +243,7 @@ class VendorController extends Controller
             'currency_id' => $request->currency_id,
             'payment_term_id' => $request->payment_term_id,
             'payment_method_id' => $request->payment_method_id,
-            'ap_account_id' => $request->ap_account_id,
+            'default_ap_chart_of_account_id' => $request->default_ap_chart_of_account_id,
             'credit_limit' => $request->credit_limit ?? 0,
             'requires_po' => $request->requires_po ?? false,
             'lead_time' => $request->lead_time ?? 0,
@@ -312,8 +325,13 @@ class VendorController extends Controller
             ->orderBy('name')
             ->get();
 
-        $apAccounts = $apAccounts = main_account::where('status', 1)
-            ->where('account_type_id', 2)
+        $apAccounts = chart_of_account::with('accountType')
+            ->whereHas('accountType', function ($q) use ($settings) {
+                $q->where('organization_id', $settings->id)
+                    ->where('code', 'LIABILITY');
+            })
+            ->where('organization_id', $settings->id)
+            ->where('status', 1)
             ->get();
 
         $countries = country::where('organization_id', $settings->id)
@@ -395,7 +413,8 @@ class VendorController extends Controller
             'currency_id' => 'nullable|exists:currencies,id',
             'payment_term_id' => 'nullable|exists:terms,id',
             'payment_method_id' => 'nullable|exists:payment_methods,id',
-            'ap_account_id' => 'nullable|exists:main_accounts,id',
+            // 'ap_account_id' => 'nullable|exists:main_accounts,id',
+            'default_ap_chart_of_account_id' => 'nullable|exists:chart_of_accounts,id',
             'credit_limit' => 'nullable|numeric|min:0',
             'requires_po' => 'nullable|boolean',
             'lead_time' => 'nullable|integer|min:0',
@@ -436,7 +455,7 @@ class VendorController extends Controller
             'currency_id' => $request->currency_id,
             'payment_term_id' => $request->payment_term_id,
             'payment_method_id' => $request->payment_method_id,
-            'ap_account_id' => $request->ap_account_id,
+            'default_ap_chart_of_account_id' => $request->default_ap_chart_of_account_id,
             'credit_limit' => $request->credit_limit,
             'requires_po' => $request->requires_po,
             'lead_time' => $request->lead_time,

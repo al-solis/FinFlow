@@ -616,12 +616,18 @@
                                 <label class="block text-xs font-medium text-gray-900 dark:text-white">
                                     Currency
                                 </label>
+                                @php
+                                    $selectedCurrencyId =
+                                        isset($vendor) && $vendor->exists
+                                            ? $vendor->currency_id ?? ''
+                                            : $settings->currency_id ?? '';
+                                @endphp
                                 <select name="currency_id"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
                                     <option value="">-- Select Currency --</option>
                                     @foreach ($currencies as $currency)
                                         <option value="{{ $currency->id }}"
-                                            {{ old('currency_id', $vendor->currency_id ?? '') == $currency->id ? ' selected' : '' }}>
+                                            {{ old('currency_id', $selectedCurrencyId) == $currency->id ? ' selected' : '' }}>
                                             {{ $currency->code }} - {{ $currency->name }}
                                         </option>
                                     @endforeach
@@ -666,14 +672,16 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-900 dark:text-white">
                                     AP Control Account
+                                    <span class="text-red-500">*</span>
                                 </label>
-                                <select name="ap_account_id"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
+                                <select name="default_ap_chart_of_account_id"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    required>
                                     <option value="">-- Select GL Account --</option>
                                     @foreach ($apAccounts as $account)
                                         <option value="{{ $account->id }}"
-                                            {{ old('ap_account_id', $vendor->ap_account_id ?? '') == $account->id ? ' selected' : '' }}>
-                                            {{ $account->code }} - {{ $account->description }}
+                                            {{ old('default_ap_chart_of_account_id', $vendor->default_ap_chart_of_account_id ?? '') == $account->id ? ' selected' : '' }}>
+                                            {{ $account->account_code }} - {{ $account->account_name }}
                                         </option>
                                     @endforeach
                                 </select>

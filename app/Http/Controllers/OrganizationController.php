@@ -86,6 +86,7 @@ class OrganizationController extends Controller
         $organization->update($validated);
 
         SystemSettings::clear();
+        SystemSettings::get();
 
         return redirect()
             ->route('admin.org')

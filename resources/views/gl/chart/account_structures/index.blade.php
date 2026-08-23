@@ -87,7 +87,7 @@
             @endforeach
         </div> --}}
 
-        @if ($errors->any())
+        {{-- @if ($errors->any())
             <div id="alert-message"
                 class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 pt-1">
                 <ul>
@@ -105,6 +105,29 @@
         @elseif(session('error'))
             <div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                 {{ session('error') }}
+            </div>
+        @endif --}}
+        @if (session('success'))
+            <div id="success-alert"
+                class="mt-3 mb-3 rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800 shadow-sm transition-all duration-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="h-4 w-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        {{ session('success') }}
+                    </div>
+
+                    <button type="button" onclick="this.closest('[id$=-alert]').style.display='none'"
+                        class="text-green-600 hover:text-green-800 transition-colors duration-200">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         @endif
 
@@ -441,8 +464,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" @if (Auth::user()->role == 2) disabled @endif
-                            class="btn-Update mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 {{ Auth::user()->role == 2 ? ' cursor-not-allowed' : '' }}">
+                        <button type="submit" @if (Auth::user()->role == '2') disabled @endif
+                            class="btn-Update mt-2 text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-xs px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 {{ Auth::user()->role == '2' ? ' cursor-not-allowed' : '' }}">
                             {{-- <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> --}}
                             Update Segment
                         </button>
@@ -454,20 +477,20 @@
     <!-- End edit modal -->
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const alert = document.getElementById('alert-message');
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const alert = document.getElementById('alert-message');
 
-            if (alert) {
-                setTimeout(() => {
-                    alert.style.transition = 'opacity 0.5s ease';
-                    alert.style.opacity = '0';
+        //     if (alert) {
+        //         setTimeout(() => {
+        //             alert.style.transition = 'opacity 0.5s ease';
+        //             alert.style.opacity = '0';
 
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 500);
-                }, 3000);
-            }
-        });
+        //             setTimeout(() => {
+        //                 alert.remove();
+        //             }, 500);
+        //         }, 3000);
+        //     }
+        // });
 
         function formatDateForInput(dateString) {
             if (!dateString) return '';
@@ -494,8 +517,7 @@
             document.getElementById('edit_description').value = button.dataset.description;
             document.getElementById('edit_start_date').value = startDate;
             document.getElementById('edit_end_date').value = endDate;
-            document.getElementById('edit_status').value = button.dataset.status;
-            document.getElementById('edit_default').checked = button.dataset.default === '1';
+            document.getElementById('edit_default').checked = Boolean(Number(button.dataset.default));
 
             document.getElementById('editForm').action = `/gl/chart/account_structures/${id}`;
         }

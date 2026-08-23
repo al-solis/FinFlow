@@ -37,6 +37,7 @@ class Organization extends Model
         'currency_id',
         'timezone',
         'language',
+        'locale',
         'date_format',
         'number_format',
         'decimal_places',

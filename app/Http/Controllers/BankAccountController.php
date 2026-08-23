@@ -46,7 +46,7 @@ class BankAccountController extends Controller
             ->orderBy('account_code')
             ->get();
 
-        $query = bank_account::with(['currency', 'chartOfAccount']);
+        $query = bank_account::where('organization_id', $this->getOrganizationId())->with(['currency', 'chartOfAccount']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -97,7 +97,8 @@ class BankAccountController extends Controller
             ->with(['mainAccount', 'accountType', 'accountCategory'])
             ->whereHas('structure', function ($q) {
                 $q->where('organization_id', $this->getOrganizationId())
-                    ->where('status', 1);
+                    ->where('status', 1)
+                    ->where('is_default', true);
             })
             ->where('status', 1)
             ->where('is_posting', true)
@@ -172,7 +173,8 @@ class BankAccountController extends Controller
             ->with(['mainAccount', 'accountType', 'accountCategory'])
             ->whereHas('structure', function ($q) {
                 $q->where('organization_id', $this->getOrganizationId())
-                    ->where('status', 1);
+                    ->where('status', 1)
+                    ->where('is_default', true);
             })
             ->where('status', 1)
             ->where('is_posting', true)

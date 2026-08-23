@@ -4,19 +4,27 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use App\Services\SystemSettings;
+use App\Models\segment;
 use App\Models\account_structure;
 use App\Services\ChartOfAccountsService;
 
 class AccountStructureController extends Controller
 {
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
     public function index(Request $request)
     {
         $search = $request->input('search');
         $searchstatus = $request->input('searchstatus');
 
-        $totalStructures = account_structure::count();
-        $activeStructures = account_structure::where('status', '1')->count();
-        $inactiveStructures = account_structure::where('status', '0')->count();
+        $totalStructures = account_structure::where('organization_id', $this->getOrganizationId())->count();
+        $activeStructures = account_structure::where('status', '1')->where('organization_id', $this->getOrganizationId())->count();
+        $inactiveStructures = account_structure::where('status', '0')->where('organization_id', $this->getOrganizationId())->count();
 
         $query = account_structure::query();
 
@@ -31,7 +39,9 @@ class AccountStructureController extends Controller
             $query->where('status', $searchstatus);
         }
 
-        $accountStructures = $query->paginate(env('APP_PAGINATE_PER_PAGE', 10))
+        $accountStructures = $query
+            ->where('organization_id', $this->getOrganizationId())
+            ->paginate(env('APP_PAGINATE_PER_PAGE', 10))
             ->appends([
                 'search' => $search,
                 'searchstatus' => $searchstatus,
@@ -50,6 +60,7 @@ class AccountStructureController extends Controller
         ]);
 
         account_structure::create([
+            'organization_id' => $this->getOrganizationId(),
             'name' => $request->name,
             'description' => $request->description,
             'start_date' => $request->start_date,
@@ -68,15 +79,13 @@ class AccountStructureController extends Controller
     {
         $accountStructure = account_structure::findOrFail($id);
 
+        // dd($request->all());
         $request->validate([
             'edit_name' => 'required|max:60',
             'edit_description' => 'required|max:120',
             'edit_start_date' => 'required|date',
             'edit_end_date' => 'required|date|after_or_equal:edit_start_date',
-            'edit_default' => 'boolean'
         ]);
-
-        // dd($request->all());
 
         $accountStructure->update([
             'name' => $request->edit_name,
@@ -87,6 +96,17 @@ class AccountStructureController extends Controller
             'updated_by' => Auth::id(),
             'updated_at' => now(),
         ]);
+
+        //update other account structures to not default if this one is set to default
+        if ($request->boolean('edit_default')) {
+            account_structure::where('organization_id', $this->getOrganizationId())
+                ->where('id', '!=', $accountStructure->id)
+                ->update([
+                    'is_default' => 0,
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now(),
+                ]);
+        }
 
         return redirect()->route('gl.structure')
             ->with('success', 'Account structure updated successfully.');

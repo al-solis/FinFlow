@@ -55,6 +55,7 @@ return new class extends Migration {
                 ->on('currencies');
             $table->string('timezone', 60)->default('Asia/Manila');
             $table->string('language', 30)->default('English');
+            $table->string('locale', 20)->default('en-PH');
             $table->string('date_format', 20)->default('Y-m-d');
             $table->string('number_format', 20)->default('1,234.56');
             $table->tinyInteger('decimal_places')->default(2);

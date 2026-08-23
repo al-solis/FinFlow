@@ -86,7 +86,7 @@
             @endforeach
         </div> --}}
 
-        @if ($errors->any())
+        {{-- @if ($errors->any())
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 pt-1">
                 <ul>
                     @foreach ($errors->all() as $error)
@@ -105,6 +105,29 @@
                     clearModalFields();
                 });
             </script>
+        @endif --}}
+        @if (session('success'))
+            <div id="success-alert"
+                class="mt-3 mb-3 rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800 shadow-sm transition-all duration-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="h-4 w-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        {{ session('success') }}
+                    </div>
+
+                    <button type="button" onclick="this.closest('[id$=-alert]').style.display='none'"
+                        class="text-green-600 hover:text-green-800 transition-colors duration-200">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
         @endif
 
         {{-- Filters --}}
@@ -515,10 +538,10 @@
                             <div class="sm:col-span-2">
                                 <label for="edit_gl_account_id"
                                     class="block text-xs font-medium text-gray-900 dark:text-white">GL Account
-                                    Code*</label>
+                                    Code</label>
                                 <select id="edit_gl_account_id" name="edit_gl_account_id"
                                     class="select2 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
-                                    <option value="">Select GL Account</option>
+                                    {{-- <option value="">Select GL Account</option> --}}
                                     @foreach ($chartOfAccounts as $glAccount)
                                         <option value="{{ $glAccount->id }}">{{ $glAccount->account_code }} -
                                             {{ $glAccount->account_name }}</option>
@@ -597,19 +620,19 @@
             });
         });
 
-        function clearModalFields() {
-            // Clear all form fields
-            const form = document.querySelector('form');
-            form.reset();
+        // function clearModalFields() {
+        //     // Clear all form fields
+        //     const form = document.querySelector('form');
+        //     form.reset();
 
-            // Remove any success messages after a delay
-            setTimeout(() => {
-                const successMessage = document.querySelector('[data-success]');
-                if (successMessage) {
-                    successMessage.remove();
-                }
-            }, 3000);
-        }
+        //     // Remove any success messages after a delay
+        //     setTimeout(() => {
+        //         const successMessage = document.querySelector('[data-success]');
+        //         if (successMessage) {
+        //             successMessage.remove();
+        //         }
+        //     }, 3000);
+        // }
 
         function formatDateForInput(dateString) {
             if (!dateString) return '';

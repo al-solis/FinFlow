@@ -96,6 +96,9 @@ return new class extends Migration {
             $table->foreign('ap_account_id')
                 ->references('id')
                 ->on('main_accounts');
+            $table->unsignedBigInteger('default_ap_chart_of_account_id')->nullable();
+            $table->foreign('default_ap_chart_of_account_id', 'vendors_default_ap_coa_fk')
+                ->references('id')->on('chart_of_accounts');
 
             $table->decimal('credit_limit', 18, 2)->default(0);
             /*

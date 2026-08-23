@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\SystemSettings;
 use App\Models\account_structure as AccountStructure;
 use App\Models\chart_of_account as ChartOfAccount;
 use App\Models\account_type as AccountType;
@@ -13,9 +14,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ChartOfAccountController extends Controller
 {
-    /**
-     * Display the generated chart of accounts for a structure.
-     */
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
+
     public function index(AccountStructure $accountStructure, Request $request)
     {
         // Get filter parameters
@@ -26,7 +30,7 @@ class ChartOfAccountController extends Controller
         $isPosting = $request->input('is_posting');
 
         // Build query
-        $query = ChartOfAccount::where('account_structure_id', $accountStructure->id)
+        $query = ChartOfAccount::where('organization_id', $this->getOrganizationId())->where('account_structure_id', $accountStructure->id)
             ->with(['accountType', 'accountCategory', 'accountSubcategory', 'segments'])
             ->orderBy('account_code');
 
@@ -65,16 +69,16 @@ class ChartOfAccountController extends Controller
             ]);
 
         // Get filter options
-        $accountTypes = AccountType::orderBy('code')->get();
-        $accountCategories = AccountCategory::orderBy('description')->get();
+        $accountTypes = AccountType::where('organization_id', $this->getOrganizationId())->orderBy('code')->get();
+        $accountCategories = AccountCategory::where('organization_id', $this->getOrganizationId())->orderBy('description')->get();
 
         // Get statistics
         $stats = [
-            'total' => ChartOfAccount::where('account_structure_id', $accountStructure->id)->count(),
-            'active' => ChartOfAccount::where('account_structure_id', $accountStructure->id)->where('status', true)->count(),
-            'inactive' => ChartOfAccount::where('account_structure_id', $accountStructure->id)->where('status', false)->count(),
-            'posting' => ChartOfAccount::where('account_structure_id', $accountStructure->id)->where('is_posting', true)->count(),
-            'non_posting' => ChartOfAccount::where('account_structure_id', $accountStructure->id)->where('is_posting', false)->count(),
+            'total' => ChartOfAccount::where('organization_id', $this->getOrganizationId())->where('account_structure_id', $accountStructure->id)->count(),
+            'active' => ChartOfAccount::where('organization_id', $this->getOrganizationId())->where('account_structure_id', $accountStructure->id)->where('status', true)->count(),
+            'inactive' => ChartOfAccount::where('organization_id', $this->getOrganizationId())->where('account_structure_id', $accountStructure->id)->where('status', false)->count(),
+            'posting' => ChartOfAccount::where('organization_id', $this->getOrganizationId())->where('account_structure_id', $accountStructure->id)->where('is_posting', true)->count(),
+            'non_posting' => ChartOfAccount::where('organization_id', $this->getOrganizationId())->where('account_structure_id', $accountStructure->id)->where('is_posting', false)->count(),
         ];
 
         return view('gl.chart.account_structures.glchart', compact(
@@ -129,7 +133,7 @@ class ChartOfAccountController extends Controller
      */
     public function export(AccountStructure $accountStructure)
     {
-        $accounts = ChartOfAccount::where('account_structure_id', $accountStructure->id)
+        $accounts = ChartOfAccount::where('organization_id', $this->getOrganizationId())->where('account_structure_id', $accountStructure->id)
             ->with(['accountType', 'accountCategory', 'accountSubcategory'])
             ->get();
 
@@ -189,7 +193,7 @@ class ChartOfAccountController extends Controller
             'status' => 'required|boolean',
         ]);
 
-        $count = ChartOfAccount::where('account_structure_id', $accountStructure->id)
+        $count = ChartOfAccount::where('organization_id', $this->getOrganizationId())->where('account_structure_id', $accountStructure->id)
             ->whereIn('id', $request->input('account_ids'))
             ->update([
                 'status' => $request->input('status'),

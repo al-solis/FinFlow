@@ -27,6 +27,8 @@ class LoadSystemSettings
                 config([
                     'app.locale' => $settings->language,
                 ]);
+
+                app()->setLocale($settings->locale);
             }
 
             if (!empty($settings->currency)) {
