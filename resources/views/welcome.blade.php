@@ -52,8 +52,8 @@
                     transition-opacity opacity-100 duration-750 lg:grow
                     starting:opacity-0 bg-gray-600 p-6 rounded-lg">
 
-        <img src="{{ asset('images/kesia_banner.webp') }}" alt="Logo" class="w-auto max-w-[280px] lg:max-w-sm">
-        {{-- <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-auto max-w-[280px] lg:max-w-sm"> --}}
+        {{-- <img src="{{ asset('images/kesia_banner.webp') }}" alt="Logo" class="w-auto max-w-[280px] lg:max-w-sm"> --}}
+        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-auto max-w-[280px] lg:max-w-sm">
         <br>
         <p class="mt-4 text-center text-4xl font-medium text-white tracking-wide">
             {{ env('APP_NAME', 'FinFlow') }}

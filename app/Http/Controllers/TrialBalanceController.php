@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\gl_journal_line;
 use Illuminate\Http\Request;
+use App\Models\chart_of_account;
 
 class TrialBalanceController extends Controller
 {
@@ -43,7 +44,7 @@ class TrialBalanceController extends Controller
     {
         $from = $request->input('from', now()->startOfMonth()->toDateString());
         $to = $request->input('to', now()->toDateString());
- 
+
         $rows = gl_journal_line::query()
             ->join('gl_journals', 'gl_journals.id', '=', 'gl_journal_lines.gl_journal_id')
             ->join('chart_of_accounts', 'chart_of_accounts.id', '=', 'gl_journal_lines.gl_account_id')
@@ -57,16 +58,18 @@ class TrialBalanceController extends Controller
             ->orderBy('chart_of_accounts.account_code')
             ->get()
             ->map(function ($row) {
+                $account = chart_of_account::find($row->account_id);
+                $row->getFormattedAccountCodeAttribute = $account ? $account->getFormattedAccountCodeAttribute() : $row->account_code;
                 $net = (float) $row->total_debit - (float) $row->total_credit;
                 $row->debit_balance = $net > 0 ? $net : 0;
                 $row->credit_balance = $net < 0 ? -$net : 0;
                 return $row;
             });
- 
+
         $totalDebit = $rows->sum('debit_balance');
         $totalCredit = $rows->sum('credit_balance');
         $isBalanced = round($totalDebit - $totalCredit, 2) === 0.0;
- 
+
         return view('gl.trial-balance', compact('rows', 'from', 'to', 'totalDebit', 'totalCredit', 'isBalanced'));
     }
 }

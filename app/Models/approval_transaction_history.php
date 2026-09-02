@@ -21,6 +21,10 @@ class approval_transaction_history extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'acted_at' => 'datetime',
+    ];
+
     public function transaction()
     {
         return $this->belongsTo(approval_transaction::class, 'approval_transaction_id');

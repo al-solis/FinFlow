@@ -40,6 +40,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('gl_journal_id')->nullable(); // posting journal that created this liability
             $table->foreign('gl_journal_id')->references('id')->on('gl_journals');
 
+            $table->text('remarks')->nullable();
+
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();

@@ -53,10 +53,11 @@ class approval_workflow extends Model
     {
         return [
             'rfd' => 'Request for Disbursement',
-            'payment' => 'Payment Request',
+            // 'payment' => 'Payment Request',
+            'ca' => 'Cash Advance Request',
+            'liquidation' => 'Cash Advance Liquidation',
             'refund' => 'Refund Request',
             'reimbursement' => 'Reimbursement Request',
-            'ca' => 'Cash Advance Request',
         ];
     }
 

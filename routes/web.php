@@ -31,6 +31,8 @@ use App\Http\Controllers\TrialBalanceController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\GeneralLedgerController;
 use App\Http\Controllers\BankReconciliationController;
+use App\Http\Controllers\CashAdvanceController;
+use App\Http\Controllers\CashAdvanceDisbursementController;
 
 
 Route::get('/', function () {
@@ -250,8 +252,72 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('cm')->name('cm.')->group(function () {
         Route::get('/disbursement', [DisbursementController::class, 'index'])->name('dv');
-        Route::get('/disbursement/{rfd}', [DisbursementController::class, 'show'])->name('cash.disbursement.show');
-        Route::post('/disbursement/{rfd}/disburse', [DisbursementController::class, 'disburse'])->name('cash.disbursement.disburse');
+        // RFD Disbursement
+        Route::get('/disbursement/rfd/{rfd}', [DisbursementController::class, 'show'])->name('cash.disbursement.show');
+        Route::post('/disbursement/rfd/{rfd}/disburse', [DisbursementController::class, 'disburse'])->name('cash.disbursement.disburse');
+
+        // Cash Advances
+        Route::get('/ca/', [CashAdvanceController::class, 'index'])->name('ca');
+        Route::get('/ca/create', [CashAdvanceController::class, 'create'])->name('ca.create');
+        Route::post('/ca/', [CashAdvanceController::class, 'store'])->name('ca.store');
+        Route::get('/ca/{cashAdvance}/edit', [CashAdvanceController::class, 'edit'])->name('ca.edit');
+        Route::put('/ca/{cashAdvance}', [CashAdvanceController::class, 'update'])->name('ca.update');
+
+        // Cash Advance Disbursement
+        Route::get('/disbursement/ca/{cashAdvance}', [DisbursementController::class, 'showCa'])->name('cash.disbursement.show.ca');
+        Route::post('/disbursement/ca/{cashAdvance}/disburse', [DisbursementController::class, 'disburseCa'])->name('cash.disbursement.disburse.ca');
+
+        // Cash Advance Approval
+        Route::get('/ca/{cashAdvance}/approval/{transaction}', [CashAdvanceController::class, 'showApproval'])->name('ca.showApproval');
+        Route::post('/ca/approvals/{transaction}/approve', [CashAdvanceController::class, 'approve'])->name('ca.approve');
+        Route::post('/ca/approvals/{transaction}/return', [CashAdvanceController::class, 'returnToRequester'])->name('ca.return');
+        Route::post('/ca/approvals/{transaction}/reject', [CashAdvanceController::class, 'reject'])->name('ca.reject');
+
+        Route::get('/ca/disbursement', [CashAdvanceDisbursementController::class, 'index'])->name('ca.disbursement');
+        Route::get('/ca/disbursement/{cashAdvance}', [CashAdvanceDisbursementController::class, 'show'])->name('ca.disbursement.show');
+        Route::post('/ca/disbursement/{cashAdvance}', [CashAdvanceDisbursementController::class, 'disburse'])->name('ca.disbursement.disburse');
+
+        // Liquidations
+        Route::get('/liquidations', [CashAdvanceController::class, 'liquidationsIndex'])->name('liq');
+        Route::get('/liquidation/{cashAdvance}/liquidate', [CashAdvanceController::class, 'createLiquidation'])->name('liquidation.create');
+        Route::post('/liquidation/{cashAdvance}/liquidate', [CashAdvanceController::class, 'storeLiquidation'])->name('liquidation.store');
+        Route::get('/liquidation/{liquidation}/edit', [CashAdvanceController::class, 'editLiquidation'])->name('liquidation.edit');
+        Route::put('/liquidation/{liquidation}', [CashAdvanceController::class, 'updateLiquidation'])->name('liquidation.update');
+        Route::get('/liquidation/{liquidation}/approval/{transaction}', [CashAdvanceController::class, 'showLiquidationApproval'])->name('liquidation.showApproval');
+        Route::post('/liquidation/approval/{transaction}/approve', [CashAdvanceController::class, 'approveLiquidation'])
+            ->name('liquidation.approve');
+        Route::post('/liquidation/approval/{transaction}/return', [CashAdvanceController::class, 'returnLiquidation'])
+            ->name('liquidation.return');
+        Route::post('/liquidation/approval/{transaction}/reject', [CashAdvanceController::class, 'rejectLiquidation'])
+            ->name('liquidation.reject');
+
+        // Refunds
+        Route::get('/refunds', [CashAdvanceController::class, 'refundsIndex'])->name('ref');
+        Route::get('/refund/create/{cashAdvance?}', [CashAdvanceController::class, 'createRefund'])->name('refund.create');
+        Route::post('/refund', [CashAdvanceController::class, 'storeRefund'])->name('refund.store');
+        Route::get('/refund/{refund}/edit', [CashAdvanceController::class, 'editRefund'])->name('refund.edit');
+        Route::put('/refund/{refund}', [CashAdvanceController::class, 'updateRefund'])->name('refund.update');
+        Route::get('/refund/{refund}/approval/{transaction}', [CashAdvanceController::class, 'showRefundApproval'])->name('refund.showApproval');
+        Route::post('/refund/approvals/{transaction}/approve', [CashAdvanceController::class, 'approveRefund'])->name('refund.approve');
+        Route::post('/refund/approvals/{transaction}/return', [CashAdvanceController::class, 'returnRefund'])->name('refund.return');
+        Route::post('/refund/approvals/{transaction}/reject', [CashAdvanceController::class, 'rejectRefund'])->name('refund.reject');
+
+
+        // Reimbursements
+        Route::get('/reimbursements', [CashAdvanceController::class, 'reimbursementsIndex'])->name('reim');
+        Route::get('/reimbursement/create', [CashAdvanceController::class, 'createReimbursement'])->name('reimbursement.create');
+        Route::post('/reimbursement', [CashAdvanceController::class, 'storeReimbursement'])->name('reimbursement.store');
+        Route::get('/reimbursement/{reimbursement}/edit', [CashAdvanceController::class, 'editReimbursement'])->name('reimbursement.edit');
+        Route::put('/reimbursement/{reimbursement}', [CashAdvanceController::class, 'updateReimbursement'])->name('reimbursement.update');
+        Route::post('/reimbursement/{reimbursement}/submit', [CashAdvanceController::class, 'submitReimbursement'])->name('reimbursement.submit');
+        Route::get('/reimbursement/{reimbursement}/approval/{transaction}', [CashAdvanceController::class, 'showReimbursementApproval'])->name('reimbursement.showApproval');
+        Route::post('/reimbursement/approvals/{transaction}/approve', [CashAdvanceController::class, 'approveReimbursement'])->name('reimbursement.approve');
+        Route::post('/reimbursement/approvals/{transaction}/return', [CashAdvanceController::class, 'returnReimbursement'])->name('reimbursement.return');
+        Route::post('/reimbursement/approvals/{transaction}/reject', [CashAdvanceController::class, 'rejectReimbursement'])->name('reimbursement.reject');
+
+        // Reimbursement Disbursement
+        Route::get('/disbursement/reimbursement/{reimbursement}', [DisbursementController::class, 'showReimbursement'])->name('cash.disbursement.show.reimbursement');
+        Route::post('/disbursement/reimbursement/{reimbursement}/disburse', [DisbursementController::class, 'disburseReimbursement'])->name('cash.disbursement.disburse.reimbursement');
     });
 
     Route::prefix('bm')->name('bm.')->group(function () {
@@ -275,6 +341,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/approval_workflows', [ApprovalWorkflowController::class, 'store'])->name('store');
         Route::get('/approval_workflows/{approval_workflow}/edit', [ApprovalWorkflowController::class, 'edit'])->name('edit');
         Route::put('/approval_workflows/{approval_workflow}', [ApprovalWorkflowController::class, 'update'])->name('update');
+        Route::patch('/approval_workflows/{approval_workflow}/toggle-status', [ApprovalWorkflowController::class, 'toggleStatus'])
+            ->name('toggleStatus');
     });
 
 

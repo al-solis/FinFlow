@@ -60,7 +60,8 @@
                 <div class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div class="rounded-xl border border-gray-200 bg-white p-5">
                         <div class="text-sm font-medium text-gray-500">Account</div>
-                        <div class="mt-1 text-lg font-bold text-gray-900">{{ $account->account_code }}</div>
+                        <div class="mt-1 text-lg font-bold text-gray-900">{{ $account->getFormattedAccountCodeAttribute() }}
+                        </div>
                         <div class="text-xs text-gray-500">{{ $account->account_name }}</div>
                     </div>
                     <div class="rounded-xl border border-blue-200 bg-blue-50 p-5">

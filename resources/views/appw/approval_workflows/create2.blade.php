@@ -63,6 +63,9 @@
             $formAction = $isEdit ? route('appw.update', $workflow->id) : route('appw.store');
         @endphp
 
+        {{-- <pre class="bg-black text-black p-4 text-xs">
+        {{ print_r($steps, true) }}
+        </pre> --}}
         <form method="POST" action="{{ $formAction }}">
             @csrf
             @if ($isEdit)
@@ -205,12 +208,6 @@
 
                                 <div
                                     class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
-                                    <!-- Stable identity of this step in the DB — empty for a brand-new step
-                                             added via "+ Add another step". Never rendered as a visible field;
-                                             this is what lets the backend match by identity, not position, so
-                                             reordering/removing steps can never corrupt another step's history. -->
-                                    <input type="hidden" :name="`steps[${index}][id]`" :value="step.id ?? ''">
-
                                     <div class="mb-3 flex items-start justify-between">
                                         <span class="text-xs font-bold uppercase tracking-wide text-green-600"
                                             x-show="index === steps.length - 1">
@@ -326,7 +323,29 @@
         </form>
     </div>
 
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js" defer></script> --}}
     <script>
+        // function workflowBuilder() {
+        //     return {
+        //         steps: @json($steps),
+        //         addStep() {
+        //             this.steps.push({
+        //                 _key: crypto.randomUUID(),
+        //                 step_name: '',
+        //                 approver_type: 'role',
+        //                 role_id: '',
+        //                 user_id: '',
+        //                 can_edit_chart_of_account: false,
+        //                 can_edit_tax: false,
+        //                 can_edit_amount: false,
+        //                 can_return_to_requester: true,
+        //             });
+        //         },
+        //         removeStep(index) {
+        //             this.steps.splice(index, 1);
+        //         },
+        //     };
+        // }
         function workflowBuilder() {
             return {
                 steps: @js($steps ?? []),
@@ -341,7 +360,6 @@
                 addStep() {
                     this.steps.push({
                         _key: crypto.randomUUID(),
-                        id: null, // brand-new step — no DB row yet, backend will create one
                         step_name: '',
                         approver_type: 'role',
                         role_id: '',

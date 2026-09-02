@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('approval_workflow_steps', function (Blueprint $table) {
@@ -28,6 +27,7 @@ return new class extends Migration
             // Marks the step that, once approved, releases the document downstream
             // (e.g. to payment processing)
             $table->boolean('is_final_approval')->default(false);
+            $table->boolean('is_active')->default(true);
 
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

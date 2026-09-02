@@ -134,7 +134,7 @@
                             <th class="px-3 py-3 text-left">Amount Range</th>
                             <th class="px-3 py-3 text-left">Steps</th>
                             <th class="px-3 py-3 text-center">Status</th>
-                            <th class="px-3 py-3 text-right w-24">Actions</th>
+                            <th class="px-3 py-3 text-right w-16">Actions</th>
                         </tr>
                     </thead>
 
@@ -198,8 +198,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-3 tabular-nums text-gray-500">
-                                    {{ $workflow->steps->where('is_active', true)->count() }}
-                                    step{{ $workflow->steps->where('is_active', true)->count() === 1 ? '' : 's' }}
+                                    {{ $workflow->steps_count }} step{{ $workflow->steps_count === 1 ? '' : 's' }}
                                 </td>
                                 <td class="px-3 py-3 text-center">
                                     @if ($workflow->is_active)
@@ -210,8 +209,8 @@
                                             class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">Inactive</span>
                                     @endif
                                 </td>
-                                <td class="px-3 py-3">
-                                    <div class="flex items-center justify-end gap-3">
+                                <td class="px-3 py-3 text-center">
+                                    <div class="relative inline-block text-left">
                                         <a href="{{ route('appw.edit', $workflow) }}"
                                             title="Edit Workflow : {{ $workflow->name }}"
                                             class="text-gray-500 hover:text-blue-600 transition-colors">
@@ -223,33 +222,128 @@
                                                     d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
                                             </svg>
                                         </a>
-
-                                        <!-- Activate / Deactivate toggle -->
-                                        <form method="POST" action="{{ route('appw.toggleStatus', $workflow) }}"
-                                            onsubmit="return confirm('{{ $workflow->is_active ? 'Deactivate' : 'Activate' }} the workflow \'{{ $workflow->name }}\'?')">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit"
-                                                title="{{ $workflow->is_active ? 'Deactivate Workflow' : 'Activate Workflow' }}"
-                                                class="transition-colors {{ $workflow->is_active ? 'text-green-600 hover:text-gray-400' : 'text-gray-400 hover:text-green-600' }}">
-                                                @if ($workflow->is_active)
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="16"
-                                                        fill="currentColor" class="bi bi-toggle-on" viewBox="0 0 16 16">
-                                                        <path
-                                                            d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8" />
-                                                    </svg>
-                                                @else
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="16"
-                                                        fill="currentColor" class="bi bi-toggle-off" viewBox="0 0 16 16">
-                                                        <path
-                                                            d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8M0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5" />
-                                                    </svg>
-                                                @endif
-                                            </button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>
+
+                            <!-- Drawer Component for each workflow -->
+                            <div id="drawer-workflow-{{ $workflow->id }}"
+                                class="fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full bg-white w-96"
+                                tabindex="-1" aria-labelledby="drawer-workflow-label-{{ $workflow->id }}">
+
+                                <div class="border-b border-gray-200 pb-4 mb-5 flex items-center">
+                                    <h5 id="drawer-workflow-label-{{ $workflow->id }}"
+                                        class="inline-flex items-center text-lg font-medium text-body">
+                                        <svg class="w-5 h-5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M4 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z M3 12h18M4 15h16M5 18h14" />
+                                        </svg>
+                                        {{ $workflow->name }}
+                                    </h5>
+                                    <button type="button" data-drawer-hide="drawer-workflow-{{ $workflow->id }}"
+                                        aria-controls="drawer-workflow-{{ $workflow->id }}"
+                                        class="text-gray-500 bg-transparent hover:text-gray-900 hover:bg-gray-100 rounded-base w-9 h-9 absolute top-2.5 end-2.5 flex items-center justify-center">
+                                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                                        </svg>
+                                        <span class="sr-only">Close menu</span>
+                                    </button>
+                                </div>
+
+                                <!-- Drawer Content -->
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500">Module</label>
+                                        <p class="text-sm font-medium text-gray-900">{{ $workflow->moduleLabel() }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500">Workflow Name</label>
+                                        <p class="text-sm font-medium text-gray-900">{{ $workflow->name }}</p>
+                                    </div>
+                                    @if ($workflow->description)
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-500">Description</label>
+                                            <p class="text-sm font-medium text-gray-900">{{ $workflow->description }}</p>
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500">Amount Range</label>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            @if ($workflow->min_amount || $workflow->max_amount)
+                                                {{ $workflow->min_amount ? number_format($workflow->min_amount, 2) : '0.00' }}
+                                                &ndash;
+                                                {{ $workflow->max_amount ? number_format($workflow->max_amount, 2) : '∞' }}
+                                            @else
+                                                <span class="text-gray-400">Any amount</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500">Approval Steps</label>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ $workflow->steps_count }} step{{ $workflow->steps_count === 1 ? '' : 's' }}
+                                        </p>
+                                        @if ($workflow->steps_count > 0)
+                                            <div class="mt-2 space-y-1.5">
+                                                @foreach ($workflow->steps as $step)
+                                                    <div class="flex items-center gap-2 text-xs text-gray-600">
+                                                        <span
+                                                            class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-700">
+                                                            {{ $step->step_no }}
+                                                        </span>
+                                                        <span>{{ $step->step_name }}</span>
+                                                        <span class="text-gray-400">·</span>
+                                                        <span class="text-gray-500">{{ $step->approverLabel() }}</span>
+                                                        @if ($step->is_final_approval)
+                                                            <span
+                                                                class="ml-auto rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600">Final</span>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500">Status</label>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            @if ($workflow->is_active)
+                                                <span class="text-green-600">Active</span>
+                                            @else
+                                                <span class="text-gray-600">Inactive</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500">Created At</label>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ $workflow->created_at->format('M d, Y H:i') }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500">Last Updated</label>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ $workflow->updated_at->format('M d, Y H:i') }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 mt-6 pt-4 border-t border-gray-200">
+                                    <a href="{{ route('appw.edit', $workflow) }}"
+                                        class="inline-flex items-center justify-center text-white bg-blue-600 box-border border border-transparent hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none w-full">
+                                        Edit Workflow
+                                        <svg class="rtl:rotate-180 w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true"
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                stroke-width="2" d="M19 12H5m14 0-4 4m4-4-4-4" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
                         @empty
                             <tr>
                                 <td colspan="7" class="px-6 py-12 text-center text-gray-500">
@@ -278,128 +372,6 @@
             </div>
         </div>
     </div>
-
-    {{-- =====================================================================
-         DRAWERS — moved outside the <table>. A <div> is not a valid child of
-         <tbody>; browsers "foster parent" invalid table content out of the
-         table during parsing, which made these render unpredictably. Same
-         fix already applied to the liquidation index blade.
-    ====================================================================== --}}
-    @foreach ($workflows as $workflow)
-        <div id="drawer-workflow-{{ $workflow->id }}"
-            class="fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full bg-white w-96"
-            tabindex="-1" aria-labelledby="drawer-workflow-label-{{ $workflow->id }}">
-
-            <div class="border-b border-gray-200 pb-4 mb-5 flex items-center">
-                <h5 id="drawer-workflow-label-{{ $workflow->id }}"
-                    class="inline-flex items-center text-lg font-medium text-body">
-                    <svg class="w-5 h-5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                        height="24" fill="none" viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z M3 12h18M4 15h16M5 18h14" />
-                    </svg>
-                    {{ $workflow->name }}
-                </h5>
-                <button type="button" data-drawer-hide="drawer-workflow-{{ $workflow->id }}"
-                    aria-controls="drawer-workflow-{{ $workflow->id }}"
-                    class="text-gray-500 bg-transparent hover:text-gray-900 hover:bg-gray-100 rounded-base w-9 h-9 absolute top-2.5 end-2.5 flex items-center justify-center">
-                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                        height="24" fill="none" viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18 17.94 6M18 18 6.06 6" />
-                    </svg>
-                    <span class="sr-only">Close menu</span>
-                </button>
-            </div>
-
-            <!-- Drawer Content -->
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-500">Module</label>
-                    <p class="text-sm font-medium text-gray-900">{{ $workflow->moduleLabel() }}</p>
-                </div>
-                @if ($workflow->description)
-                    <div>
-                        <label class="block text-xs font-medium text-gray-500">Description</label>
-                        <p class="text-sm text-gray-700">{{ $workflow->description }}</p>
-                    </div>
-                @endif
-                <div>
-                    <label class="block text-xs font-medium text-gray-500">Amount Range</label>
-                    <p class="text-sm font-medium text-gray-900">
-                        @if ($workflow->min_amount || $workflow->max_amount)
-                            {{ $workflow->min_amount ? number_format($workflow->min_amount, 2) : '0.00' }}
-                            &ndash;
-                            {{ $workflow->max_amount ? number_format($workflow->max_amount, 2) : '∞' }}
-                        @else
-                            <span class="text-gray-400">Any amount</span>
-                        @endif
-                    </p>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500">Approval Steps</label>
-                    <p class="text-sm font-medium text-gray-900">
-                        {{ $workflow->steps->where('is_active', true)->count() }}
-                        step{{ $workflow->steps->where('is_active', true)->count() === 1 ? '' : 's' }}
-                    </p>
-                    @if ($workflow->steps->where('is_active', true)->count() > 0)
-                        <div class="mt-2 space-y-1.5">
-                            @foreach ($workflow->steps->where('is_active', true) as $step)
-                                <div class="flex items-center gap-2 text-xs text-gray-600">
-                                    <span
-                                        class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-700">
-                                        {{ $step->step_no }}
-                                    </span>
-                                    <span>{{ $step->step_name }}</span>
-                                    <span class="text-gray-400">·</span>
-                                    <span class="text-gray-500">{{ $step->approverLabel() }}</span>
-                                    @if ($step->is_final_approval)
-                                        <span
-                                            class="ml-auto rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600">Final</span>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500">Status</label>
-                    <p class="text-sm font-medium text-gray-900">
-                        @if ($workflow->is_active)
-                            <span class="text-green-600">Active</span>
-                        @else
-                            <span class="text-gray-600">Inactive</span>
-                        @endif
-                    </p>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500">Created At</label>
-                    <p class="text-sm font-medium text-gray-900">
-                        {{ $workflow->created_at->format('M d, Y H:i') }}
-                    </p>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500">Last Updated</label>
-                    <p class="text-sm font-medium text-gray-900">
-                        {{ $workflow->updated_at->format('M d, Y H:i') }}
-                    </p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-4 mt-6 pt-4 border-t border-gray-200">
-                <a href="{{ route('appw.edit', $workflow) }}"
-                    class="inline-flex items-center justify-center text-white bg-blue-600 box-border border border-transparent hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none w-full">
-                    Edit Workflow
-                    <svg class="rtl:rotate-180 w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                        viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 12H5m14 0-4 4m4-4-4-4" />
-                    </svg>
-                </a>
-            </div>
-        </div>
-    @endforeach
 
     @push('scripts')
         <script>

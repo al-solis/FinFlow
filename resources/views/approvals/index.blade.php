@@ -6,7 +6,7 @@
     <div class="mx-auto max-w-7xl">
         @if (session('success'))
             <div id="success-alert"
-                class="mt-3 mb-3 rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800 shadow-sm transition-all duration-500">
+                class="mt-3 mb-3 rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <svg class="h-4 w-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -17,7 +17,7 @@
                         {{ session('success') }}
                     </div>
                     <button type="button" onclick="this.closest('[id$=-alert]').style.display='none'"
-                        class="text-green-600 hover:text-green-800 transition-colors duration-200">
+                        class="text-green-600 hover:text-green-800">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -29,7 +29,7 @@
 
         @if (session('error'))
             <div id="error-alert"
-                class="mt-3 mb-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 shadow-sm transition-all duration-500">
+                class="mt-3 mb-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <svg class="h-4 w-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -40,7 +40,7 @@
                         {{ session('error') }}
                     </div>
                     <button type="button" onclick="this.closest('[id$=-alert]').style.display='none'"
-                        class="text-red-600 hover:text-red-800 transition-colors duration-200">
+                        class="text-red-600 hover:text-red-800">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -50,10 +50,9 @@
             </div>
         @endif
 
-
         <div class="mt-5 mb-5">
             <h1 class="text-2xl font-bold text-gray-800">Approval Dashboard</h1>
-            <p class="mt-1 text-sm text-gray-500">Review and process disbursement requests</p>
+            <p class="mt-1 text-sm text-gray-500">Review and process requests pending your approval</p>
         </div>
 
         <!-- Stat cards -->
@@ -89,47 +88,51 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse ($transactions as $tx)
-                            @php $rfd = $tx->approvable; @endphp
+                            @php
+                                $approvable = $tx->approvable;
+                                $reference = $tx->getReferenceNumber();
+                                $moduleLabel = $tx->getModuleLabel();
+                                $moduleBadge = $tx->getModuleBadgeClass();
+                                $requestorName = $tx->getRequestorName();
+                                $requestorEmail = $tx->getRequestorEmail();
+                                $amount = $tx->getTotalAmount();
+                                $currency = $tx->getCurrencySymbol();
+                                $purpose = $tx->getPurpose();
+                            @endphp
                             <tr class="hover:bg-gray-50">
-                                <td
-                                    class="px-6 py-3 font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors duration-200">
+                                <td class="px-6 py-3 font-medium text-blue-600">
                                     <button type="button" data-drawer-target="drawer-tx-{{ $tx->id }}"
                                         data-drawer-show="drawer-tx-{{ $tx->id }}" data-drawer-placement="right"
-                                        data-drawer-backdrop="true"
                                         class="text-blue-600 hover:text-blue-800 hover:underline transition-colors">
-                                        RFD-{{ str_pad($rfd->id, 6, '0', STR_PAD_LEFT) }}
+                                        {{ $reference }}
                                     </button>
                                 </td>
-
+                                <td class="px-3 py-3">
+                                    <span class="rounded-full {{ $moduleBadge }} px-2.5 py-1 text-xs font-medium">
+                                        {{ $moduleLabel }}
+                                    </span>
                                 </td>
                                 <td class="px-3 py-3">
-                                    <span class="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">RFD</span>
-                                </td>
-                                <td class="px-3 py-3">
-                                    <div class="font-medium text-gray-900">
-                                        {{ trim(($rfd->creator->last_name ?? '') . ', ' . ($rfd->creator->first_name ?? '')) ?: $rfd->creator->name ?? 'Unknown' }}
-                                    </div>
-                                    <div class="text-gray-400">{{ $rfd->creator->email ?? '' }}</div>
+                                    <div class="font-medium text-gray-900">{{ $requestorName }}</div>
+                                    <div class="text-gray-400">{{ $requestorEmail }}</div>
                                 </td>
                                 <td class="px-3 py-3 text-gray-700">
-                                    {{ $rfd->remarks ?: '—' }}
-                                    <div class="text-gray-400">{{ $rfd->details->count() }} line
-                                        item{{ $rfd->details->count() === 1 ? '' : 's' }}</div>
+                                    {{ $purpose }}
                                 </td>
-                                <td class="px-3 py-3 text-right tabular-nums">
-                                    {{ $rfd->currency->symbol ?? '' }}{{ number_format($rfd->total_due, 2) }}
+                                <td class="px-3 py-3 text-right tabular-nums font-medium">
+                                    {{ $currency }}{{ number_format($amount, 2) }}
                                 </td>
                                 <td class="px-3 py-3 text-center">
                                     <span
-                                        class="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-yellow-700">Pending</span>
+                                        class="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-700">
+                                        Pending
+                                    </span>
                                 </td>
                                 <td class="px-3 py-3 text-right">
-                                    <button type="button" data-drawer-target="drawer-tx-{{ $tx->id }}"
-                                        data-drawer-show="drawer-tx-{{ $tx->id }}" data-drawer-placement="right"
-                                        data-drawer-backdrop="true"
-                                        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
-                                        View
-                                    </button>
+                                    <a href="{{ $tx->reviewUrl() }}"
+                                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700">
+                                        Review
+                                    </a>
                                 </td>
                             </tr>
                         @empty
@@ -142,187 +145,14 @@
                     </tbody>
                 </table>
 
-                {{-- Drawers --}}
-                @foreach ($transactions as $tx)
-                    @php $rfd = $tx->approvable; @endphp
-
-                    <div id="drawer-tx-{{ $tx->id }}"
-                        class="fixed top-0 right-0 z-50 h-screen w-[520px] max-w-full translate-x-full overflow-y-auto bg-white shadow-xl transition-transform duration-300"
-                        tabindex="-1" aria-labelledby="drawer-label-{{ $tx->id }}" role="dialog">
-
-                        {{-- Drawer Header --}}
-                        <div class="sticky top-0 z-10 border-b border-gray-200 bg-white px-5 py-4">
-                            <div class="flex items-start justify-between gap-4">
-                                <div class="min-w-0">
-                                    <div class="mb-2 flex flex-wrap gap-1">
-                                        <span
-                                            class="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-700">
-                                            Pending
-                                        </span>
-                                        <span
-                                            class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                                            Request for Disbursement
-                                        </span>
-                                    </div>
-                                    <h5 id="drawer-label-{{ $tx->id }}"
-                                        class="text-lg font-semibold text-gray-900">
-                                        {{ $rfd->remarks ?: 'Disbursement Request' }}
-                                    </h5>
-                                    <p class="text-xs text-gray-500">
-                                        RFD-{{ str_pad($rfd->id, 6, '0', STR_PAD_LEFT) }}
-                                    </p>
-                                </div>
-
-                                <div class="flex shrink-0 items-start gap-3">
-                                    <div class="text-right">
-                                        <div class="text-xs text-gray-500">
-                                            Total Amount
-                                        </div>
-                                        <div class="text-lg font-bold text-gray-900">
-                                            {{ $rfd->currency->symbol ?? '' }}{{ number_format($rfd->total_due, 2) }}
-                                        </div>
-                                    </div>
-
-                                    <button type="button" data-drawer-hide="drawer-tx-{{ $tx->id }}"
-                                        aria-controls="drawer-tx-{{ $tx->id }}"
-                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Drawer Body --}}
-                        <div class="px-5 py-5">
-                            {{-- Request Information --}}
-                            <div class="mb-5 rounded-lg bg-gray-50 p-4 text-xs">
-                                <div class="mb-3 flex justify-between gap-4">
-                                    <span class="shrink-0 text-gray-500">
-                                        Requested By
-                                    </span>
-                                    <span class="text-right font-medium text-gray-800">
-                                        {{ $rfd->creator->name ?? trim(($rfd->creator->first_name ?? '') . ' ' . ($rfd->creator->last_name ?? '')) }}
-                                        · {{ $rfd->creator->email ?? '' }}
-                                    </span>
-                                </div>
-                                <div class="mb-3 flex justify-between gap-4">
-                                    <span class="shrink-0 text-gray-500">
-                                        Date Submitted
-                                    </span>
-                                    <span class="text-right font-medium text-gray-800">
-                                        {{ $rfd->submitted_at?->format('n/j/Y, g:i A') }}
-                                    </span>
-                                </div>
-                                <div class="flex justify-between gap-4">
-                                    <span class="shrink-0 text-gray-500">
-                                        Purpose
-                                    </span>
-                                    <span class="text-right font-medium text-gray-800">
-                                        {{ $rfd->remarks ?: '—' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {{-- Line Items --}}
-                            <div class="mb-5">
-                                <div class="mb-2 flex items-center justify-between">
-                                    <h6 class="text-xs font-semibold uppercase text-gray-500">
-                                        Line Items ({{ $rfd->details->count() }})
-                                    </h6>
-                                </div>
-
-                                <div class="overflow-hidden rounded-lg border border-gray-200">
-                                    <div class="overflow-x-auto">
-                                        <table class="min-w-full text-xs">
-                                            <thead class="bg-gray-50 text-gray-500">
-                                                <tr>
-                                                    <th class="w-8 px-3 py-2 text-left font-medium">
-                                                        #
-                                                    </th>
-                                                    <th class="px-3 py-2 text-left font-medium">
-                                                        Description
-                                                    </th>
-                                                    <th class="px-3 py-2 text-left font-medium">
-                                                        Account
-                                                    </th>
-                                                    <th class="px-3 py-2 text-right font-medium">
-                                                        Amount
-                                                    </th>
-                                                </tr>
-                                            </thead>
-
-                                            <tbody class="divide-y divide-gray-100">
-
-                                                @foreach ($rfd->details as $detail)
-                                                    <tr>
-                                                        <td class="px-3 py-2 align-top text-gray-400">
-                                                            {{ $detail->line_no }}
-                                                        </td>
-                                                        <td class="px-3 py-2 align-top text-gray-800">
-                                                            {{ $detail->description }}
-                                                        </td>
-                                                        <td class="px-3 py-2 align-top">
-                                                            <div class="font-medium text-blue-700">
-                                                                {{ $detail->glAccount?->getFormattedAccountCodeAttribute() ?? '—' }}
-                                                            </div>
-                                                            <div class="text-[10px] leading-tight text-gray-400">
-                                                                {{ $detail->glAccount->account_name ?? '' }}
-                                                            </div>
-                                                        </td>
-                                                        <td
-                                                            class="px-3 py-2 text-right align-top font-medium tabular-nums">
-                                                            {{ number_format($detail->total_amount, 2) }}
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-
-                                            </tbody>
-
-                                            <tfoot class="border-t border-gray-200 bg-gray-50">
-                                                <tr>
-                                                    <td colspan="3" class="px-3 py-2 text-right font-medium">
-                                                        Total
-                                                    </td>
-                                                    <td class="px-3 py-2 text-right font-bold text-gray-900">
-                                                        {{ number_format($rfd->total_due, 2) }}
-                                                    </td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Drawer Footer --}}
-                        <div class="sticky bottom-0 border-t border-gray-200 bg-white px-5 py-4">
-                            <div class="flex items-center justify-between gap-3">
-                                <button type="button" data-drawer-hide="drawer-tx-{{ $tx->id }}"
-                                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100">
-                                    Close
-                                </button>
-
-                                <a href="{{ $tx->reviewUrl() }}"
-                                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
-                                    Review
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </a>
-                            </div>
-                        </div>
+                <!-- Pagination -->
+                <div class="flex items-center justify-between border-t px-6 py-4 text-xs text-gray-500">
+                    <div>
+                        Showing {{ $transactions->firstItem() ?? 0 }}-{{ $transactions->lastItem() ?? 0 }}
+                        of {{ $transactions->total() }}
                     </div>
-                @endforeach
-            </div>
-
-            <div class="flex items-center justify-between border-t px-6 py-4 text-xs text-gray-500">
-                <div>Showing {{ $transactions->firstItem() ?? 0 }}-{{ $transactions->lastItem() ?? 0 }} of
-                    {{ $transactions->total() }}</div>
-                {{ $transactions->links() }}
+                    {{ $transactions->links() }}
+                </div>
             </div>
         </div>
     </div>

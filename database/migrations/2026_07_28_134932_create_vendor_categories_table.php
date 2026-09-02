@@ -67,6 +67,16 @@ return new class extends Migration {
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'organization_id' => 1,
+                'code' => 'EMP',
+                'name' => 'Employee',
+                'description' => 'Employee vendors for cash advances and reimbursements',
+                'status' => 1,
+                'created_by' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 

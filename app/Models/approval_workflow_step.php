@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\approval_workflow;
 use App\Models\role;
+use App\Models\approval_workflow;
 use App\Models\User;
 
 class approval_workflow_step extends Model
@@ -23,6 +23,7 @@ class approval_workflow_step extends Model
         'can_edit_amount',
         'can_return_to_requester',
         'is_final_approval',
+        'is_active',
         'created_by',
         'updated_by',
     ];
@@ -33,6 +34,7 @@ class approval_workflow_step extends Model
         'can_edit_amount' => 'boolean',
         'can_return_to_requester' => 'boolean',
         'is_final_approval' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function workflow()

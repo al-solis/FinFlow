@@ -78,7 +78,7 @@
                                     <td class="px-6 py-3">
                                         <a href="{{ route('gl.gr', ['account_id' => $row->account_id, 'from' => $from, 'to' => $to]) }}"
                                             class="font-medium text-blue-600 hover:text-blue-800 hover:underline">
-                                            {{ $row->account_code }}
+                                            {{ $row->getFormattedAccountCodeAttribute }}
                                         </a>
                                     </td>
                                     <td class="px-3 py-3 text-gray-700">{{ $row->account_name }}</td>

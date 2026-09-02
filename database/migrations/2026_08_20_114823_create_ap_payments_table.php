@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->foreign('bank_account_id')->references('id')->on('bank_accounts');
 
             $table->string('reference_number')->nullable(); // check/transfer number
+            $table->text('remarks')->nullable();
             $table->date('check_date')->nullable();
             $table->string('disbursement_method', 30)->default('bank_transfer');
 
