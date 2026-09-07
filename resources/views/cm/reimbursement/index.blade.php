@@ -67,23 +67,27 @@
                 </div>
             </div>
 
-            <!-- Stats -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 px-6 py-4 border-b border-gray-200">
-                <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
-                    <div class="text-sm font-medium text-indigo-700">Total Reimbursements</div>
-                    <div class="mt-1 text-2xl font-bold text-indigo-900">{{ $totalReimbursements ?? 0 }}</div>
+            <!-- Stats - Single Row -->
+            <div class="grid grid-cols-5 gap-2 px-4 py-3 border-b border-gray-200">
+                <div class="bg-white rounded-lg border border-gray-200 px-2 py-1.5 text-center">
+                    <div class="text-[9px] font-medium text-gray-500 uppercase tracking-wider">Total</div>
+                    <div class="text-sm font-bold text-gray-900">{{ $totalReimbursements }}</div>
                 </div>
-                <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-                    <div class="text-sm font-medium text-yellow-700">Pending Approval</div>
-                    <div class="mt-1 text-2xl font-bold text-yellow-900">{{ $pendingApproval ?? 0 }}</div>
+                <div class="bg-gray-50 rounded-lg border border-gray-200 px-2 py-1.5 text-center">
+                    <div class="text-[9px] font-medium text-gray-500 uppercase tracking-wider">Draft</div>
+                    <div class="text-sm font-bold text-gray-600">{{ $draftCount }}</div>
                 </div>
-                <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <div class="text-sm font-medium text-blue-700">Draft (From Liquidation)</div>
-                    <div class="mt-1 text-2xl font-bold text-blue-900">{{ $draftCount ?? 0 }}</div>
+                <div class="bg-yellow-50 rounded-lg border border-yellow-200 px-2 py-1.5 text-center">
+                    <div class="text-[9px] font-medium text-yellow-700 uppercase tracking-wider">Pending</div>
+                    <div class="text-sm font-bold text-yellow-800">{{ $pendingApproval }}</div>
                 </div>
-                <div class="rounded-lg border border-green-200 bg-green-50 p-4">
-                    <div class="text-sm font-medium text-green-700">Total Amount</div>
-                    <div class="mt-1 text-2xl font-bold text-green-900">{{ number_format($totalAmount ?? 0, 2) }}</div>
+                <div class="bg-green-50 rounded-lg border border-green-200 px-2 py-1.5 text-center">
+                    <div class="text-[9px] font-medium text-green-700 uppercase tracking-wider">Posted</div>
+                    <div class="text-sm font-bold text-green-800">{{ $postedCount }}</div>
+                </div>
+                <div class="bg-red-50 rounded-lg border border-red-200 px-2 py-1.5 text-center">
+                    <div class="text-[9px] font-medium text-red-700 uppercase tracking-wider">Rejected</div>
+                    <div class="text-sm font-bold text-red-800">{{ $rejectedCount }}</div>
                 </div>
             </div>
 
@@ -344,7 +348,7 @@
                     <div>
                         <label class="block text-xs text-gray-500">Credit Account</label>
                         <p class="mt-1 text-sm font-medium text-gray-900">
-                            {{ $reimbursement->glAccount?->account_code ?? '—' }}
+                            {{ $reimbursement->glAccount?->getFormattedAccountCodeAttribute() ?? '—' }}
                             {{ $reimbursement->glAccount ? '— ' . $reimbursement->glAccount->account_name : '' }}
                         </p>
                     </div>

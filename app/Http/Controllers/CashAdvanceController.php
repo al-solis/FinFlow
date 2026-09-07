@@ -5,24 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\CashAdvance;
 use App\Models\CashAdvanceLiquidation;
 use App\Models\CashAdvanceLiquidationDetail;
+use App\Constants\Modules;
 use App\Services\ApprovalWorkflowService;
 use App\Services\AccountingService;
 use App\Traits\WithSystemSettings;
+use App\Traits\AuthorizesAccessRights;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 use App\Models\approval_workflow;
 use App\Models\approval_workflow_step;
 use App\Models\chart_of_account;
 use App\Models\CashAdvanceRefund;
 use App\Models\ReimbursementDetail;
-use Illuminate\Http\Request;
 use App\Models\approval_transaction;
 use App\Models\approval_transaction_history;
-
+use App\Models\CashAdvanceLiquidationAttachment;
 
 class CashAdvanceController extends Controller
 {
+    use AuthorizesAccessRights;
     use WithSystemSettings;
 
     protected ApprovalWorkflowService $approvals;
@@ -53,6 +58,8 @@ class CashAdvanceController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorizeRead(Modules::CM, Modules::CM_CA);
+
         $user = Auth::user();
 
         $cashAdvances = CashAdvance::query()
@@ -70,6 +77,8 @@ class CashAdvanceController extends Controller
 
     public function create()
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_CA);
+
         // Check if approver is set up BEFORE allowing creation
         $hasApprover = $this->hasApproverSetup('ca', 0);
         $allAccounts = $this->getGlAccounts();
@@ -86,6 +95,8 @@ class CashAdvanceController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_CA);
+
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'gl_account_id' => 'required|exists:chart_of_accounts,id',
@@ -124,6 +135,7 @@ class CashAdvanceController extends Controller
 
     public function edit(CashAdvance $cashAdvance)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_CA);
         // dd($cashAdvance);
         $user = Auth::user();
         $allAccounts = $this->getGlAccounts();
@@ -160,6 +172,8 @@ class CashAdvanceController extends Controller
 
     public function update(Request $request, CashAdvance $cashAdvance)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_CA);
+
         if (!in_array($cashAdvance->approval_status, ['0', '4'])) {
             abort(403, 'Only draft or returned Cash Advances can be edited.');
         }
@@ -196,6 +210,8 @@ class CashAdvanceController extends Controller
     // ==================== LIQUIDATION ====================
     public function liquidationsIndex(Request $request)
     {
+        $this->authorizeRead(Modules::CM, Modules::CM_LIQ);
+
         $user = Auth::user();
 
         $liquidations = CashAdvanceLiquidation::query()
@@ -225,6 +241,8 @@ class CashAdvanceController extends Controller
 
     public function createLiquidation(CashAdvance $cashAdvance)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_LIQ);
+
         if ($cashAdvance->employee_id != Auth::id()) {
             abort(403, 'You can only liquidate your own Cash Advances.');
         }
@@ -281,6 +299,8 @@ class CashAdvanceController extends Controller
 
     public function storeLiquidation(Request $request, CashAdvance $cashAdvance)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_LIQ);
+
         if ($cashAdvance->employee_id != Auth::id()) {
             abort(403, 'You can only liquidate your own Cash Advances.');
         }
@@ -298,6 +318,8 @@ class CashAdvanceController extends Controller
             'details.*.amount' => 'required|numeric|min:0.01',
             'details.*.reference' => 'nullable|string|max:50',
             'credit_account_id' => 'nullable|exists:chart_of_accounts,id',
+            'attachment_files.*' => 'nullable|file|max:20480',
+            'attachment_descriptions.*' => 'nullable|string|max:255',
         ]);
 
         $pendingLiquidationAmount = (float) CashAdvanceLiquidation::where('cash_advance_id', $cashAdvance->id)
@@ -356,6 +378,12 @@ class CashAdvanceController extends Controller
                 ]);
             }
 
+            $this->syncLiquidationAttachments(
+                $liquidation,
+                $request->file('attachment_files', []),
+                $request->input('attachment_descriptions', [])
+            );
+
             if ($request->boolean('submit_for_approval')) {
                 $this->approvals->submit($liquidation, 'liquidation', (float) $totalExpenses, Auth::id());
                 $liquidation->update(['submitted_at' => now(), 'submitted_by' => Auth::id()]);
@@ -365,8 +393,39 @@ class CashAdvanceController extends Controller
         return redirect()->route('cm.liq')->with('success', 'Liquidation saved.');
     }
 
+    protected function syncLiquidationAttachments(CashAdvanceLiquidation $liquidation, array $files, array $descriptions): void
+    {
+        foreach ($descriptions as $index => $description) {
+            if (!isset($files[$index]) || !$files[$index]->isValid()) {
+                continue;
+            }
+
+            $file = $files[$index];
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileName = Str::uuid() . '.' . $extension;
+            $filePath = 'liquidations/' . $liquidation->id . '/' . $fileName;
+
+            Storage::disk('private')->putFileAs('liquidations/' . $liquidation->id, $file, $fileName);
+
+            CashAdvanceLiquidationAttachment::create([
+                'liquidation_id' => $liquidation->id,
+                'file_name' => $fileName,
+                'original_filename' => $originalName,
+                'file_path' => $filePath,
+                'file_size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'description' => $description ?? null,
+                'uploaded_by' => Auth::id(),
+                'created_by' => Auth::id(),
+            ]);
+        }
+    }
+
     public function editLiquidation(CashAdvanceLiquidation $liquidation)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+
         if ($liquidation->employee_id != Auth::id()) {
             abort(403, 'You can only edit your own liquidations.');
         }
@@ -423,6 +482,8 @@ class CashAdvanceController extends Controller
 
     public function updateLiquidation(Request $request, CashAdvanceLiquidation $liquidation)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+
         if ($liquidation->employee_id != Auth::id()) {
             abort(403, 'You can only edit your own liquidations.');
         }
@@ -440,6 +501,8 @@ class CashAdvanceController extends Controller
             'details.*.amount' => 'required|numeric|min:0.01',
             'details.*.reference' => 'nullable|string|max:50',
             'credit_account_id' => 'nullable|exists:chart_of_accounts,id',
+            'attachment_files.*' => 'nullable|file|max:20480',
+            'attachment_descriptions.*' => 'nullable|string|max:255',
         ]);
 
         $cashAdvance = $liquidation->cashAdvance;
@@ -499,6 +562,12 @@ class CashAdvanceController extends Controller
                 ]);
             }
 
+            $this->syncLiquidationAttachments(
+                $liquidation,
+                $request->file('attachment_files', []),
+                $request->input('attachment_descriptions', [])
+            );
+
             if ($request->boolean('submit_for_approval')) {
                 $this->approvals->submit($liquidation->fresh(), 'liquidation', (float) $totalExpenses, Auth::id());
                 $liquidation->update(['submitted_at' => now(), 'submitted_by' => Auth::id()]);
@@ -506,6 +575,70 @@ class CashAdvanceController extends Controller
         });
 
         return redirect()->route('cm.liq')->with('success', 'Liquidation updated.');
+    }
+
+    /**
+     * Download liquidation attachment
+     */
+    public function downloadLiquidationAttachment(CashAdvanceLiquidationAttachment $attachment)
+    {
+        $this->authorizeRead(Modules::CM, Modules::CM_LIQ);
+
+        // Verify user has access to this liquidation
+        $liquidation = $attachment->liquidation;
+        if (!$liquidation) {
+            abort(404, 'Liquidation not found.');
+        }
+
+        // Check if user owns this liquidation or is admin
+        if (!$this->isAdmin() && $liquidation->employee_id != Auth::id()) {
+            abort(403, 'You do not have permission to view this attachment.');
+        }
+
+        if (!Storage::disk('private')->exists($attachment->file_path)) {
+            abort(404, 'File not found.');
+        }
+
+        return Storage::disk('private')->download(
+            $attachment->file_path,
+            $attachment->original_filename
+        );
+    }
+
+    /**
+     * Delete liquidation attachment
+     */
+    public function deleteLiquidationAttachment(CashAdvanceLiquidationAttachment $attachment)
+    {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+
+        $liquidation = $attachment->liquidation;
+        if (!$liquidation) {
+            abort(404, 'Liquidation not found.');
+        }
+
+        // Only owner or admin can delete attachments
+        if (!$this->isAdmin() && $liquidation->employee_id != Auth::id()) {
+            abort(403, 'You can only delete attachments from your own liquidations.');
+        }
+
+        // Only allow deletion if liquidation is draft or returned
+        if (!in_array($liquidation->approval_status, ['0', '4'])) {
+            abort(403, 'Attachments can only be deleted from draft or returned liquidations.');
+        }
+
+        DB::transaction(function () use ($attachment) {
+            if (Storage::disk('private')->exists($attachment->file_path)) {
+                Storage::disk('private')->delete($attachment->file_path);
+            }
+            $attachment->delete();
+        });
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->back()->with('success', 'Attachment deleted.');
     }
 
     public function showLiquidationApproval(CashAdvanceLiquidation $liquidation, approval_transaction $transaction)
@@ -550,6 +683,8 @@ class CashAdvanceController extends Controller
 
     public function approveLiquidation(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -626,6 +761,8 @@ class CashAdvanceController extends Controller
 
     public function returnLiquidation(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+
         $request->validate(['remarks' => 'required|string|max:1000']);
         $this->approvals->returnToRequester($transaction, Auth::id(), $request->input('remarks'));
 
@@ -634,6 +771,8 @@ class CashAdvanceController extends Controller
 
     public function rejectLiquidation(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+
         $request->validate(['remarks' => 'required|string|max:1000']);
         $this->approvals->reject($transaction, Auth::id(), $request->input('remarks'));
 
@@ -643,6 +782,8 @@ class CashAdvanceController extends Controller
     // ==================== REFUND (Employee to Company) ====================
     public function refundsIndex(Request $request)
     {
+        $this->authorizeRead(Modules::CM, Modules::CM_REF);
+
         $user = Auth::user();
 
         $refunds = CashAdvanceRefund::query()
@@ -665,6 +806,8 @@ class CashAdvanceController extends Controller
 
     public function createRefund(CashAdvance $cashAdvance)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_REF);
+
         if ($cashAdvance->employee_id != Auth::id()) {
             abort(403, 'You can only request a refund for your own Cash Advances.');
         }
@@ -712,6 +855,8 @@ class CashAdvanceController extends Controller
 
     public function storeRefund(Request $request)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_REF);
+
         $validated = $request->validate([
             'cash_advance_id' => 'required|exists:cash_advances,id',
             'amount' => 'required|numeric|min:0.01',
@@ -756,6 +901,8 @@ class CashAdvanceController extends Controller
 
     public function editRefund(CashAdvanceRefund $refund)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REF);
+
         if ($refund->employee_id != Auth::id()) {
             abort(403, 'You can only edit your own refunds.');
         }
@@ -779,6 +926,8 @@ class CashAdvanceController extends Controller
 
     public function updateRefund(Request $request, CashAdvanceRefund $refund)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REF);
+
         if ($refund->employee_id != Auth::id()) {
             abort(403, 'You can only edit your own refunds.');
         }
@@ -835,6 +984,8 @@ class CashAdvanceController extends Controller
 
     public function returnRefund(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REF);
+
         $request->validate([
             'remarks' => 'required|string|min:1|max:1000'
         ]);
@@ -846,6 +997,8 @@ class CashAdvanceController extends Controller
 
     public function rejectRefund(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REF);
+
         $request->validate([
             'remarks' => 'required|string|min:1|max:1000'
         ]);
@@ -857,6 +1010,8 @@ class CashAdvanceController extends Controller
 
     public function approveRefund(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REF);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -909,6 +1064,8 @@ class CashAdvanceController extends Controller
     // ==================== REIMBURSEMENT (Company to Employee) ====================
     public function reimbursementsIndex(Request $request)
     {
+        $this->authorizeRead(Modules::CM, Modules::CM_REIM);
+
         $user = Auth::user();
 
         $reimbursements = CashAdvanceRefund::query()
@@ -938,13 +1095,21 @@ class CashAdvanceController extends Controller
         $totalAmount = CashAdvanceRefund::where('type', 'reimbursement')
             ->where('approval_status', '2')
             ->sum('amount');
+        $rejectedCount = CashAdvanceRefund::where('type', 'reimbursement')
+            ->where('approval_status', '3')
+            ->count();
+        $postedCount = CashAdvanceRefund::where('type', 'reimbursement')
+            ->where('approval_status', '5')
+            ->count();
 
         return view('cm.reimbursement.index', compact(
             'reimbursements',
             'totalReimbursements',
             'pendingApproval',
             'draftCount',
-            'totalAmount'
+            'totalAmount',
+            'rejectedCount',
+            'postedCount',
         ));
     }
 
@@ -953,6 +1118,8 @@ class CashAdvanceController extends Controller
      */
     public function submitReimbursement(CashAdvanceRefund $reimbursement)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REIM);
+
         if ($reimbursement->type !== 'reimbursement') {
             abort(404);
         }
@@ -979,6 +1146,8 @@ class CashAdvanceController extends Controller
 
     public function createReimbursement()
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_REIM);
+
         // Check approver setup for reimbursement
         if (!$this->hasApproverSetup('reimbursement', 0)) {
             return back()->with('error', 'No approver configured for Reimbursements. Please contact administrator.');
@@ -991,6 +1160,8 @@ class CashAdvanceController extends Controller
 
     public function storeReimbursement(Request $request)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_REIM);
+
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'purpose' => 'required|string|max:500',
@@ -1071,6 +1242,8 @@ class CashAdvanceController extends Controller
 
     public function approveReimbursement(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REIM);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -1149,6 +1322,8 @@ class CashAdvanceController extends Controller
 
     public function returnReimbursement(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REIM);
+
         $request->validate([
             'remarks' => 'required|string|min:1|max:1000'
         ]);
@@ -1160,6 +1335,8 @@ class CashAdvanceController extends Controller
 
     public function rejectReimbursement(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REIM);
+
         $request->validate([
             'remarks' => 'required|string|min:1|max:1000'
         ]);

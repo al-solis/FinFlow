@@ -2,161 +2,177 @@
 
 namespace App\Traits;
 
-use App\Models\access_right;
-use App\Models\module;
-use App\Models\sub_module;
+use App\Constants\Modules;
+use App\Services\AuthorizationService;
 use Illuminate\Support\Facades\Auth;
-use App\Services\SystemSettings;
 
 trait AuthorizesAccessRights
 {
-    public function getOrganizationId(): ?int
-    {
-        $settings = SystemSettings::get();
-        return $settings ? $settings->id : null;
-    }
-    /**
-     * Check if user has access to a specific module and sub-module
-     */
-    protected function hasAccess(int $moduleId, int $subModuleId, string $permission): bool
-    {
-        $user = Auth::user();
+    protected ?AuthorizationService $authService = null;
 
-        if (!$user) {
-            return false;
+    /**
+     * Get the authorization service instance
+     */
+    protected function auth(): AuthorizationService
+    {
+        if (!$this->authService) {
+            $this->authService = new AuthorizationService(Auth::user());
         }
-
-        // Super admin or specific role can bypass (optional)
-        // if ($user->role_id == 1) { // Assuming role_id 1 is super admin
-        //     return true;
-        // }
-
-        // Check if user has access rights
-        $accessRight = access_right::where('organization_id', $this->getOrganizationId())
-            ->where('role_id', $user->role_id)
-            ->where('module_id', $moduleId)
-            ->where('sub_module_id', $subModuleId)
-            ->first();
-
-        if (!$accessRight) {
-            return false;
-        }
-
-        // Check specific permission
-        return match ($permission) {
-            'create' => (bool) $accessRight->can_create,
-            'read' => (bool) $accessRight->can_read,
-            'update' => (bool) $accessRight->can_update,
-            'delete' => (bool) $accessRight->can_delete,
-            default => false,
-        };
+        return $this->authService;
     }
 
-    /**
-     * Authorize user for RFD module access
-     */
-    protected function authorizeRfd(string $permission): void
+    // ==================== PERMISSION CHECKS ====================
+
+    protected function hasPermission(string $moduleCode, string $permission, ?string $subModuleCode = null): bool
     {
-        $moduleId = 2; // Accounts Payable
-        $subModuleId = 11; // Request for Disbursement
-
-        if (!$this->hasAccess($moduleId, $subModuleId, $permission)) {
-            abort(403, 'You do not have permission to perform this action.');
-        }
+        return $this->auth()->hasPermission($moduleCode, $permission, $subModuleCode);
     }
 
-    /**
-     * Authorize for viewing RFD
-     */
-    protected function authorizeRfdRead(): void
+    protected function canCreate(string $moduleCode, ?string $subModuleCode = null): bool
     {
-        $this->authorizeRfd('read');
+        return $this->auth()->canCreate($moduleCode, $subModuleCode);
     }
 
-    /**
-     * Authorize for creating RFD
-     */
+    protected function canRead(string $moduleCode, ?string $subModuleCode = null): bool
+    {
+        return $this->auth()->canRead($moduleCode, $subModuleCode);
+    }
+
+    protected function canUpdate(string $moduleCode, ?string $subModuleCode = null): bool
+    {
+        return $this->auth()->canUpdate($moduleCode, $subModuleCode);
+    }
+
+    protected function canDelete(string $moduleCode, ?string $subModuleCode = null): bool
+    {
+        return $this->auth()->canDelete($moduleCode, $subModuleCode);
+    }
+
+    // ==================== AUTHORIZATION ====================
+
+    protected function authorizePermission(string $moduleCode, string $permission, ?string $subModuleCode = null): void
+    {
+        $this->auth()->authorize($moduleCode, $permission, $subModuleCode);
+    }
+
+    protected function authorizeCreate(string $moduleCode, ?string $subModuleCode = null): void
+    {
+        $this->auth()->authorizeCreate($moduleCode, $subModuleCode);
+    }
+
+    protected function authorizeRead(string $moduleCode, ?string $subModuleCode = null): void
+    {
+        $this->auth()->authorizeRead($moduleCode, $subModuleCode);
+    }
+
+    protected function authorizeUpdate(string $moduleCode, ?string $subModuleCode = null): void
+    {
+        $this->auth()->authorizeUpdate($moduleCode, $subModuleCode);
+    }
+
+    protected function authorizeDelete(string $moduleCode, ?string $subModuleCode = null): void
+    {
+        $this->auth()->authorizeDelete($moduleCode, $subModuleCode);
+    }
+
+    // ==================== GET PERMISSIONS ====================
+
+    protected function getPermissions(string $moduleCode, ?string $subModuleCode = null): array
+    {
+        return $this->auth()->getPermissions($moduleCode, $subModuleCode);
+    }
+
+    // ==================== OWNERSHIP CHECKS ====================
+
+    protected function ownsModel($model, string $userIdField = 'created_by'): bool
+    {
+        return $this->auth()->ownsModel($model, $userIdField);
+    }
+
+    // ==================== ADMIN CHECK ====================
+
+    protected function isAdmin(): bool
+    {
+        return $this->auth()->isAdmin();
+    }
+
+    // ==================== MODULE-SPECIFIC HELPERS ====================
+
+    // AP Module
+    protected function canAccessRfd(): bool
+    {
+        return $this->canRead(Modules::AP, Modules::AP_RFD);
+    }
+
+    protected function authorizeRfd(): void
+    {
+        $this->authorizeRead(Modules::AP, Modules::AP_RFD);
+    }
+
     protected function authorizeRfdCreate(): void
     {
-        $this->authorizeRfd('create');
+        $this->authorizeCreate(Modules::AP, Modules::AP_RFD);
     }
 
-    /**
-     * Authorize for updating RFD
-     */
     protected function authorizeRfdUpdate(): void
     {
-        $this->authorizeRfd('update');
+        $this->authorizeUpdate(Modules::AP, Modules::AP_RFD);
     }
 
-    /**
-     * Authorize for deleting RFD
-     */
     protected function authorizeRfdDelete(): void
     {
-        $this->authorizeRfd('delete');
+        $this->authorizeDelete(Modules::AP, Modules::AP_RFD);
     }
 
-    /**
-     * Get user's access rights for RFD
-     */
-    protected function getRfdAccessRights(): ?array
+    // CM Module
+    protected function canAccessCashAdvance(): bool
     {
-        $user = Auth::user();
-
-        if (!$user) {
-            return null;
-        }
-
-        // Super admin bypass
-        if ($user->role_id == 1) {
-            return [
-                'can_create' => true,
-                'can_read' => true,
-                'can_update' => true,
-                'can_delete' => true,
-            ];
-        }
-
-        $accessRight = access_right::where('organization_id', $this->getOrganizationId())
-            ->where('role_id', $user->role_id)
-            ->where('module_id', 2) // Accounts Payable
-            ->where('sub_module_id', 11) // Request for Disbursement
-            ->first();
-
-        if (!$accessRight) {
-            return null;
-        }
-
-        return [
-            'can_create' => (bool) $accessRight->can_create,
-            'can_read' => (bool) $accessRight->can_read,
-            'can_update' => (bool) $accessRight->can_update,
-            'can_delete' => (bool) $accessRight->can_delete,
-        ];
+        return $this->canRead(Modules::CM, Modules::CM_CA);
     }
 
-    /**
-     * Authorize specific action on a model instance
-     */
-    protected function authorizeRfdAction(string $action, $model = null): void
+    protected function authorizeCashAdvance(): void
     {
-        $rights = $this->getRfdAccessRights();
+        $this->authorizeRead(Modules::CM, Modules::CM_CA);
+    }
 
-        if (!$rights) {
-            abort(403, 'You do not have access to this module.');
-        }
+    protected function authorizeCashAdvanceCreate(): void
+    {
+        $this->authorizeCreate(Modules::CM, Modules::CM_CA);
+    }
 
-        $canPerform = match ($action) {
-            'view', 'read' => $rights['can_read'],
-            'create' => $rights['can_create'],
-            'update', 'edit' => $rights['can_update'],
-            'delete', 'destroy' => $rights['can_delete'],
-            default => false,
-        };
+    protected function authorizeCashAdvanceUpdate(): void
+    {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_CA);
+    }
 
-        if (!$canPerform) {
-            abort(403, "You do not have permission to {$action} this request.");
-        }
+    protected function authorizeLiquidation(): void
+    {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+    }
+
+    protected function authorizeRefund(): void
+    {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REF);
+    }
+
+    protected function authorizeReimbursement(): void
+    {
+        $this->authorizeUpdate(Modules::CM, Modules::CM_REIM);
+    }
+
+    // GL Module
+    protected function authorizeJournalEntry(): void
+    {
+        $this->authorizeRead(Modules::GL, Modules::GL_JOURNAL);
+    }
+
+    protected function authorizeJournalEntryCreate(): void
+    {
+        $this->authorizeCreate(Modules::GL, Modules::GL_JOURNAL);
+    }
+
+    protected function authorizeJournalEntryUpdate(): void
+    {
+        $this->authorizeUpdate(Modules::GL, Modules::GL_JOURNAL);
     }
 }

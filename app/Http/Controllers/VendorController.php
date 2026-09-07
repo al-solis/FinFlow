@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Services\SystemSettings;
+use App\Constants\Modules;
+use App\Traits\MasksPii;
+use App\Traits\AuthorizesAccessRights;
 use App\Models\vendor;
 use App\Models\VendorCategory;
 use App\Models\currency;
@@ -24,8 +27,12 @@ use App\Models\ap_invoice_line;
 
 class VendorController extends Controller
 {
+    use AuthorizesAccessRights;
+    use MasksPii;
     public function index(Request $request)
     {
+        $this->authorizeRead(Modules::AP, Modules::AP_VENDORS);
+        setPiiContext(Modules::AP, Modules::AP_VENDORS);
         $settings = SystemSettings::get();
 
         $query = vendor::with('category')
@@ -80,6 +87,8 @@ class VendorController extends Controller
 
     public function create()
     {
+        $this->authorizeCreate(Modules::AP, Modules::AP_VENDORS);
+
         $settings = SystemSettings::get();
         $vendors = vendor::where('organization_id', $settings->id)
             ->where('is_active', 1)
@@ -152,6 +161,8 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorizeCreate(Modules::AP, Modules::AP_VENDORS);
+
         $settings = SystemSettings::get();
 
         $request->validate([
@@ -306,6 +317,8 @@ class VendorController extends Controller
 
     public function edit($id)
     {
+        $this->authorizeUpdate(Modules::AP, Modules::AP_VENDORS);
+
         $settings = SystemSettings::get();
         $vendor = vendor::with(['category', 'paymentTerm', 'bankAccounts', 'attachments'])->findOrFail($id);
 
@@ -369,6 +382,8 @@ class VendorController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->authorizeUpdate(Modules::AP, Modules::AP_VENDORS);
+
         $settings = SystemSettings::get();
         $vendor = vendor::findOrFail($id);
 
@@ -520,6 +535,8 @@ class VendorController extends Controller
 
     public function deleteAttachment($vendorId, $attachmentId)
     {
+        $this->authorizeUpdate(Modules::AP, Modules::AP_VENDORS);
+
         try {
             $attachment = vendor_attachment::findOrFail($attachmentId);
 

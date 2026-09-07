@@ -24,8 +24,12 @@ class EmployeeVendorService
     public function getOrCreateEmployeeVendor(User $employee): vendor
     {
         // Check if vendor already exists for this employee
+        // $vendor = vendor::where('organization_id', $this->getOrganizationId())
+        //     ->where('code', 'EMP-' . str_pad($employee->id, 6, '0', STR_PAD_LEFT))
+        //     ->first();
+        $vendorCode = user::where('id', $employee->id)->value('vendor_code');
         $vendor = vendor::where('organization_id', $this->getOrganizationId())
-            ->where('code', 'EMP-' . str_pad($employee->id, 6, '0', STR_PAD_LEFT))
+            ->where('id', $vendorCode)
             ->first();
 
         if ($vendor) {
@@ -60,6 +64,8 @@ class EmployeeVendorService
                 'created_by' => auth()->id() ?? 1,
                 'remarks' => 'Auto-created employee vendor for cash advances',
             ]);
+
+            user::where('id', $employee->id)->update(['vendor_code' => $vendor->id]);
 
             return $vendor;
         });

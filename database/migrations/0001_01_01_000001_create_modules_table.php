@@ -208,7 +208,7 @@ return new class extends Migration {
 
         DB::table('modules')->insert([
             'code' => 'ADMIN',
-            'name' => 'System Administration',
+            'name' => 'Admin',
             'description' => 'System Administration',
             'icon' => 'fas fa-cogs',
             'img' => 'admin.png',
@@ -221,7 +221,7 @@ return new class extends Migration {
 
         DB::table('modules')->insert([
             'code' => 'APPW',
-            'name' => 'Approval Workflow',
+            'name' => 'Workflow',
             'description' => 'Approval Workflow',
             'icon' => 'fas fa-check-double',
             'img' => 'appw.png',

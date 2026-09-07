@@ -13,6 +13,7 @@ use App\Notifications\ApprovalStepNotification;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\gl_journal;
 use RuntimeException;
 
 class ApprovalWorkflowService
@@ -56,7 +57,7 @@ class ApprovalWorkflowService
 
             $approvable->forceFill([
                 'approval_status' => '1',
-                'status' => '1',
+                'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '1',
             ])->save();
 
             $this->notifyStepApprovers($tx, $firstStep);
@@ -97,7 +98,7 @@ class ApprovalWorkflowService
 
                 $approvable->forceFill([
                     'approval_status' => '2',
-                    'status' => '2',
+                    'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '2',
                     'approved_by' => $actorId,
                 ])->save();
 
@@ -122,7 +123,7 @@ class ApprovalWorkflowService
                 $approvable = $tx->approvable;
                 $approvable->forceFill([
                     'approval_status' => '2',
-                    'status' => '2',
+                    'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '2',
                     'approved_by' => $actorId,
                 ])->save();
 
@@ -167,7 +168,7 @@ class ApprovalWorkflowService
             $approvable = $tx->approvable;
             $approvable->forceFill([
                 'approval_status' => '4',
-                'status' => '0',
+                'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '0',
             ])->save();
 
             $requesterId = $this->getRequesterId($approvable);
@@ -203,7 +204,7 @@ class ApprovalWorkflowService
             $approvable = $tx->approvable;
             $approvable->forceFill([
                 'approval_status' => '3',
-                'status' => '3',
+                'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '3',
             ])->save();
 
             return $tx;
@@ -234,8 +235,20 @@ class ApprovalWorkflowService
             $approvable instanceof CashAdvance => $this->accounting->postCashAdvanceApproval($approvable->fresh(), $actorId),
             $approvable instanceof CashAdvanceLiquidation => $this->accounting->postLiquidationApproval($approvable->fresh(), $actorId),
             $approvable instanceof CashAdvanceRefund => $this->handleRefundReimbursementApproval($approvable, $actorId),
+            $approvable instanceof gl_journal => $this->handleJournalApproval($approvable, $actorId),
             default => null,
         };
+    }
+
+    protected function handleJournalApproval(gl_journal $journal, int $actorId): void
+    {
+        $journal->update([
+            'approval_status' => '2',
+            'status' => 'posted',
+            'posted_at' => now(),
+            'posted_by' => $actorId,
+            'approved_by' => $actorId,
+        ]);
     }
 
     /**

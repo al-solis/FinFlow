@@ -25,6 +25,9 @@ return new class extends Migration {
             $table->unsignedBigInteger('subledger_id')->nullable();
 
             $table->unsignedBigInteger('created_by')->nullable();
+            $table->foreign('created_by')->references('id')->on('users');
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->foreign('updated_by')->references('id')->on('users');
             $table->timestamps();
 
             $table->index(['gl_account_id']);

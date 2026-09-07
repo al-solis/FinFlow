@@ -147,14 +147,13 @@
                                     <div class="flex items-center justify-center gap-2">
                                         <button type="button" data-drawer-target="drawer-liq-{{ $liquidation->id }}"
                                             data-drawer-show="drawer-liq-{{ $liquidation->id }}"
-                                            data-drawer-placement="right" data-drawer-backdrop="true"
-                                            class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
+                                            data-drawer-placement="right"
+                                            class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
                                             View
                                         </button>
                                         @if (in_array($liquidation->approval_status, ['0', '4']) && $liquidation->employee_id == auth()->id())
                                             <a href="{{ route('cm.liquidation.edit', $liquidation) }}"
-                                                title="Edit Liquidation"
-                                                class="text-gray-500 hover:text-blue-600 transition-colors">
+                                                title="Edit Liquidation" class="text-gray-500 hover:text-blue-600">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                                     fill="currentColor" viewBox="0 0 16 16">
                                                     <path
@@ -191,14 +190,17 @@
         </div>
     </div>
 
-    {{-- =====================================================================
-         DRAWERS — deliberately outside the <table>. A <div> is not valid
-         inside <tbody>; browsers "foster parent" invalid table content by
-         hoisting it out of the table during parsing, which made these render
-         in an unpredictable spot. Looping them here, after the table closes,
-         is the same fix already applied to the disbursement index blade.
-    ====================================================================== --}}
+    {{-- Drawers --}}
     @foreach ($liquidations as $liquidation)
+        @php
+            $remaining =
+                (float) $liquidation->cashAdvance->disbursed_amount -
+                (float) $liquidation->cashAdvance->liquidated_amount;
+            $excess = max(0, $liquidation->total_expenses - $remaining);
+            $hasExcess = $excess > 0;
+            $approvalTx = $liquidation->latestApprovalTransaction;
+            $stepStatus = $approvalTx ? $approvalTx->status : null;
+        @endphp
         <div id="drawer-liq-{{ $liquidation->id }}"
             class="fixed top-0 right-0 z-50 h-screen w-[520px] max-w-full overflow-y-auto bg-white p-5 shadow-xl transition-transform duration-300 transform translate-x-full"
             tabindex="-1" aria-labelledby="drawer-label-{{ $liquidation->id }}" role="dialog">
@@ -230,14 +232,32 @@
                                 class="inline-flex rounded-full {{ $liquidation->statusBadgeClass() }} px-2.5 py-1 text-xs font-medium">
                                 {{ $liquidation->statusLabel() }}
                             </span>
+                            {{-- @if ($liquidation->approval_status === '1')
+                                <span
+                                    class="ml-2 inline-flex rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-medium text-yellow-800">
+                                    Pending Approval
+                                </span>
+                            @endif --}}
+                            @if ($hasExcess && $liquidation->approval_status === '2')
+                                <span
+                                    class="ml-2 inline-flex rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                                    Reimbursement Pending
+                                </span>
+                            @endif
                         </div>
                     </div>
                     <div class="text-right">
                         <div class="text-xs text-gray-500">Total Expenses</div>
-                        <div class="text-lg font-bold text-gray-900">
-                            {{ number_format($liquidation->total_expenses, 2) }}</div>
+                        <div class="text-lg font-bold text-gray-900">{{ number_format($liquidation->total_expenses, 2) }}
+                        </div>
                     </div>
                 </div>
+                @if ($hasExcess)
+                    <div class="mt-2 rounded-lg bg-indigo-50 p-2 text-xs text-indigo-700">
+                        <strong>Excess Amount:</strong> {{ number_format($excess, 2) }}
+                        (This will be processed as a reimbursement)
+                    </div>
+                @endif
             </div>
 
             <!-- Details -->
@@ -250,7 +270,7 @@
                             CA-{{ str_pad($liquidation->cash_advance_id, 6, '0', STR_PAD_LEFT) }}
                         </p>
                         <p class="text-xs text-gray-500">
-                            Amount: {{ number_format($liquidation->cashAdvance->amount ?? 0, 2) }}
+                            Disbursed: {{ number_format($liquidation->cashAdvance->disbursed_amount ?? 0, 2) }}
                         </p>
                     </div>
                     <div>
@@ -259,9 +279,7 @@
                             {{ $liquidation->employee?->last_name ?? '—' }},
                             {{ $liquidation->employee?->first_name ?? '—' }}
                         </p>
-                        <p class="text-xs text-gray-500">
-                            {{ $liquidation->employee?->email ?? '' }}
-                        </p>
+                        <p class="text-xs text-gray-500">{{ $liquidation->employee?->email ?? '' }}</p>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500">Liquidation Date</label>
@@ -282,18 +300,26 @@
                         </div>
                     @endif
                     <div>
-                        <label class="block text-xs text-gray-500">CA Amount</label>
+                        <label class="block text-xs text-gray-500">Liquidated Already</label>
                         <p class="mt-1 text-sm font-medium text-gray-900">
-                            {{ number_format($liquidation->cashAdvance->amount ?? 0, 2) }}
+                            {{ number_format($liquidation->cashAdvance->liquidated_amount ?? 0, 2) }}
                         </p>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500">Remaining Balance</label>
                         <p class="mt-1 text-sm font-medium text-gray-900">
-                            {{-- {{ number_format(($liquidation->cashAdvance->amount ?? 0) - ($liquidation->cashAdvance->liquidated_amount ?? 0), 2) }} --}}
-                            {{ number_format($remainingAmount ?? 0, 2) }}
+                            {{ number_format(max(0, $remaining), 2) }}
                         </p>
                     </div>
+                    @if ($hasExcess)
+                        <div class="col-span-2">
+                            <label class="block text-xs text-gray-500">Credit Account (Reimbursement Payable)</label>
+                            <p class="mt-1 text-sm font-medium text-indigo-600">
+                                {{ $liquidation->creditAccount?->account_code ?? '—' }}
+                                {{ $liquidation->creditAccount ? '— ' . $liquidation->creditAccount->account_name : '' }}
+                            </p>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -304,41 +330,47 @@
                     <table class="min-w-full text-xs">
                         <thead class="bg-gray-50 text-gray-500">
                             <tr>
-                                <th class="px-3 py-2 text-left font-medium w-8">#</th>
-                                <th class="px-3 py-2 text-left font-medium">Expense Date</th>
-                                <th class="px-3 py-2 text-left font-medium">Description</th>
-                                <th class="px-3 py-2 text-right font-medium">Amount</th>
+                                <th class="px-3 py-2 text-left">#</th>
+                                <th class="px-3 py-2 text-left">Expense Date</th>
+                                <th class="px-3 py-2 text-left">Description</th>
+                                <th class="px-3 py-2 text-left">GL Account</th>
+                                <th class="px-3 py-2 text-right">Amount</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse ($liquidation->details as $detail)
                                 <tr>
-                                    <td class="px-3 py-2 text-gray-400 align-top">{{ $loop->iteration }}</td>
-                                    <td class="px-3 py-2 text-gray-600 align-top">
+                                    <td class="px-3 py-2 text-gray-400">{{ $loop->iteration }}</td>
+                                    <td class="px-3 py-2 text-gray-600">
                                         {{ $detail->expense_date?->format('M d, Y') ?? '—' }}
                                     </td>
-                                    <td class="px-3 py-2 text-gray-800 align-top">
+                                    <td class="px-3 py-2 text-gray-800">
                                         {{ $detail->description }}
                                         @if ($detail->reference)
                                             <span class="text-gray-400 text-[10px] block">Ref:
                                                 {{ $detail->reference }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-3 py-2 text-right tabular-nums font-medium text-gray-700 align-top">
+                                    <td class="px-3 py-2">
+                                        <span class="text-gray-700">
+                                            {{ $detail->glAccount->account_code ?? '—' }}
+                                            {{ $detail->glAccount ? '— ' . $detail->glAccount->account_name : '' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-2 text-right tabular-nums font-medium text-gray-700">
                                         {{ number_format($detail->amount, 2) }}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-3 py-4 text-center text-gray-500">
-                                        No expense details found.
-                                    </td>
+                                    <td colspan="5" class="px-3 py-4 text-center text-gray-500">No expense details
+                                        found.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                         <tfoot class="border-t border-gray-200 bg-gray-50">
                             <tr>
-                                <td colspan="3" class="px-3 py-2 text-right font-medium">Total</td>
+                                <td colspan="4" class="px-3 py-2 text-right font-medium">Total</td>
                                 <td class="px-3 py-2 text-right font-bold text-gray-900">
                                     {{ number_format($liquidation->total_expenses, 2) }}
                                 </td>
@@ -348,11 +380,71 @@
                 </div>
             </div>
 
-            <!-- Approval Workflow -->
-            @php
-                $approvalTx = $liquidation->latestApprovalTransaction;
-            @endphp
+            <!-- Attachments -->
+            <div class="mb-6">
+                <h6 class="mb-3 text-sm font-semibold text-gray-900">Attachments</h6>
+                @if ($liquidation->attachments && $liquidation->attachments->count() > 0)
+                    <div class="space-y-2">
+                        @foreach ($liquidation->attachments as $attachment)
+                            <div
+                                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="flex-shrink-0">
+                                        @php
+                                            $ext = pathinfo($attachment->original_filename, PATHINFO_EXTENSION);
+                                            $icon = match (strtolower($ext)) {
+                                                'pdf' => 'text-red-500',
+                                                'doc', 'docx' => 'text-blue-500',
+                                                'xls', 'xlsx' => 'text-green-500',
+                                                'jpg', 'jpeg', 'png' => 'text-purple-500',
+                                                'zip' => 'text-yellow-500',
+                                                default => 'text-gray-400',
+                                            };
+                                        @endphp
+                                        <svg class="h-6 w-6 {{ $icon }}" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-gray-700 truncate">
+                                            {{ $attachment->original_filename }}</p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ number_format($attachment->file_size / 1024, 1) }} KB
+                                            @if ($attachment->description)
+                                                · {{ $attachment->description }}
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 flex-shrink-0">
+                                    <a href="{{ route('cm.liquidation.download-attachment', $attachment->id) }}"
+                                        target="_blank" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                        Download
+                                    </a>
+                                    @if (in_array($liquidation->approval_status, ['0', '4']) && $liquidation->employee_id == auth()->id())
+                                        <form method="POST"
+                                            action="{{ route('cm.liquidation.delete-attachment', $attachment->id) }}"
+                                            class="inline" onsubmit="return confirm('Delete this attachment?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-red-600 hover:text-red-800 text-xs font-medium">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-xs text-gray-500">No attachments uploaded.</p>
+                @endif
+            </div>
 
+            <!-- Approval Workflow -->
             <div class="mb-6">
                 <h6 class="mb-3 text-sm font-semibold text-gray-900">Approval Workflow</h6>
 
@@ -369,7 +461,6 @@
                         <!-- Current Step -->
                         @php
                             $currentStep = $approvalTx->currentStep();
-                            $stepStatus = $approvalTx->status;
                         @endphp
 
                         <div class="mb-4">
@@ -532,7 +623,7 @@
                                                 <span
                                                     class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Current</span>
                                             @endif
-                                            @if ($isPast && !$isRejected && !$isReturned)
+                                            @if ($isPast && !$isRejected && !$isReturned && !$isCurrent)
                                                 <span
                                                     class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">Done</span>
                                             @endif
@@ -544,9 +635,7 @@
                     </div>
                 @else
                     <div class="rounded-lg border border-dashed border-gray-300 p-4 text-center">
-                        <p class="text-xs text-gray-500">
-                            This Liquidation has not been submitted for approval.
-                        </p>
+                        <p class="text-xs text-gray-500">This Liquidation has not been submitted for approval.</p>
                     </div>
                 @endif
             </div>

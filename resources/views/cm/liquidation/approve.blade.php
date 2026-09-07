@@ -232,6 +232,56 @@
                         </div>
                     @endif
 
+                    <!-- Attachments -->
+                    <div class="px-8 py-6 border-b border-gray-200">
+                        <h2 class="text-sm font-semibold text-gray-700 mb-4">Attachments</h2>
+                        @if ($liquidation->attachments && $liquidation->attachments->count() > 0)
+                            <div class="space-y-2">
+                                @foreach ($liquidation->attachments as $attachment)
+                                    <div
+                                        class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="flex-shrink-0">
+                                                @php
+                                                    $ext = pathinfo($attachment->original_filename, PATHINFO_EXTENSION);
+                                                    $icon = match (strtolower($ext)) {
+                                                        'pdf' => 'text-red-500',
+                                                        'doc', 'docx' => 'text-blue-500',
+                                                        'xls', 'xlsx' => 'text-green-500',
+                                                        'jpg', 'jpeg', 'png' => 'text-purple-500',
+                                                        'zip' => 'text-yellow-500',
+                                                        default => 'text-gray-400',
+                                                    };
+                                                @endphp
+                                                <svg class="h-6 w-6 {{ $icon }}" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="text-sm font-medium text-gray-700 truncate">
+                                                    {{ $attachment->original_filename }}</p>
+                                                <p class="text-xs text-gray-500">
+                                                    {{ number_format($attachment->file_size / 1024, 1) }} KB
+                                                    @if ($attachment->description)
+                                                        · {{ $attachment->description }}
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('cm.liquidation.download-attachment', $attachment->id) }}"
+                                            target="_blank" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                            Download
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-xs text-gray-500">No attachments uploaded.</p>
+                        @endif
+                    </div>
+
                     <div class="mt-4">
                         <label class="block text-xs font-medium text-gray-900 mb-1">Remarks</label>
                         <textarea name="remarks" rows="2" placeholder="Optional notes for this approval"

@@ -66,7 +66,7 @@
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 px-6 py-4 border-b border-gray-200">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 px-6 py-4 border-b border-gray-200">
                 <div class="rounded-lg border border-purple-200 bg-purple-50 p-4">
                     <div class="text-sm font-medium text-purple-700">Total Refunds</div>
                     <div class="mt-1 text-2xl font-bold text-purple-900">{{ $refunds->total() }}</div>
@@ -77,18 +77,18 @@
                         {{ $refunds->where('approval_status', '1')->count() }}
                     </div>
                 </div>
-                <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <div class="text-sm font-medium text-blue-700">Approved</div>
-                    <div class="mt-1 text-2xl font-bold text-blue-900">
+                <div class="rounded-lg border border-green-200 bg-green-50 p-4">
+                    <div class="text-sm font-medium text-green-700">Approved</div>
+                    <div class="mt-1 text-2xl font-bold text-green-900">
                         {{ $refunds->where('approval_status', '2')->count() }}
                     </div>
                 </div>
-                <div class="rounded-lg border border-green-200 bg-green-50 p-4">
+                {{-- <div class="rounded-lg border border-green-200 bg-green-50 p-4">
                     <div class="text-sm font-medium text-green-700">Paid</div>
                     <div class="mt-1 text-2xl font-bold text-green-900">
                         {{ $refunds->where('status', '5')->count() }}
                     </div>
-                </div>
+                </div> --}}
             </div>
 
             <!-- Filters -->

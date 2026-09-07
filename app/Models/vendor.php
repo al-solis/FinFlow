@@ -65,6 +65,19 @@ class vendor extends Model
         'updated_by',
     ];
 
+    public const PII_FIELDS = [
+        'name' => 'full_name',
+        'legal_name' => 'full_name',
+        'contact_person' => 'full_name',
+        'email' => 'email',
+        'phone' => 'phone',
+        'mobile' => 'mobile',
+        'tax_id' => 'tax_id',
+        'address1' => 'address',
+        'address2' => 'address',
+        'contact_notes' => 'address',
+    ];
+
     public function organization()
     {
         return $this->belongsTo(organization::class, 'organization_id');
@@ -130,9 +143,9 @@ class vendor extends Model
         $accountStructure = account_structure::where('organization_id', $this->organization_id)
             ->where('is_default', true)
             ->first();
-        
+
         if (!$accountStructure) {
-            return 0; 
+            return 0;
         }
 
         return ap_invoice::where('organization_id', $this->organization_id)
@@ -147,9 +160,9 @@ class vendor extends Model
         $accountStructure = account_structure::where('organization_id', $this->organization_id)
             ->where('is_default', true)
             ->first();
-        
+
         if (!$accountStructure) {
-            return 0; 
+            return 0;
         }
 
         return ap_invoice::where('organization_id', $this->organization_id)

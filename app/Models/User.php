@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\role;
+use App\Models\vendor;
 
 class User extends Authenticatable
 {
@@ -29,6 +30,7 @@ class User extends Authenticatable
         'role_id',
         'profile_picture',
         'department_id',
+        'vendor_code',
     ];
 
     /**
@@ -39,6 +41,17 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    public const PII_FIELDS = [
+        'first_name' => 'first_name',
+        'last_name' => 'last_name',
+        'middle_name' => 'full_name',
+        'email' => 'email',
+        'employee_id' => 'employee_id',
+        // 'phone' => 'phone',
+        // 'mobile' => 'mobile',
+        // 'address' => 'address',
     ];
 
     /**
@@ -67,5 +80,10 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role && in_array(strtolower($this->role->name), ['admin', 'administrator']);
+    }
+
+    public function getVendorAttribute()
+    {
+        return $this->belongsTo(vendor::class, 'vendor_code');
     }
 }

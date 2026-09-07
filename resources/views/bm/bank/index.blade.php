@@ -40,6 +40,14 @@
                     <h1 class="text-2xl font-bold text-gray-800">Bank Master</h1>
                     <p class="mt-1 text-sm text-gray-500">Manage bank records used across the Accounts Payable module.
                     </p>
+
+                    <!-- PII Access Badge -->
+                    <div class="mt-2">
+                        @piiAccessBadge
+                        <span class="ml-2 text-xs text-gray-500">
+                            {{ getPiiMaskLevel() === 'none' ? 'Full access to personal data' : 'Limited access - PII masked' }}
+                        </span>
+                    </div>
                 </div>
 
                 <a href="{{ route('bm.bank.create') }}"
@@ -170,13 +178,13 @@
                                                     ];
                                                 @endphp
                                                 {{ $types[$bankAccount->account_type] ?? '—' }} -
-                                                {{ $bankAccount->account_number }}
+                                                {{ maskPii($bankAccount->account_number, 'account_number') }}
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-3 py-3 text-gray-600">
-                                    {{ $bankAccount->account_name ?? '—' }}
+                                    {{ maskPii($bankAccount->account_name, 'account_name') ?? '—' }}
                                 </td>
                                 <td class="px-3 py-3 text-gray-600">
                                     {{ $bankAccount->branch ?? '—' }}
@@ -252,13 +260,14 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500">Account Number</label>
-                                        <p class="text-sm font-medium text-gray-900">{{ $bankAccount->account_number }}
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ maskPii($bankAccount->account_number, 'account_number') }}
                                         </p>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500">Account Name</label>
                                         <p class="text-sm font-medium text-gray-900">
-                                            {{ $bankAccount->account_name ?? '—' }}</p>
+                                            {{ maskPii($bankAccount->account_name, 'account_name') ?? '—' }}</p>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500">Account Type</label>
@@ -277,7 +286,8 @@
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500">GL Account</label>
                                         <p class="text-sm font-medium text-gray-900">
-                                            {{ $bankAccount->chartOfAccount->account_code ?? '—' }}</p>
+                                            {{ $bankAccount->chartOfAccount->getFormattedAccountCodeAttribute() ?? '—' }}
+                                        </p>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500">Status</label>

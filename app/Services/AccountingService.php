@@ -173,6 +173,7 @@ class AccountingService
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
                 'status' => 'posted',
+                'approval_status' => '2',
                 'posted_at' => now(),
                 'posted_by' => $actorId,
             ]);
@@ -304,6 +305,7 @@ class AccountingService
                 'total_debit' => $amountToPay,
                 'total_credit' => $amountToPay,
                 'status' => 'posted',
+                'approval_status' => '2',
                 'posted_at' => now(),
                 'posted_by' => $actorId,
             ]);
@@ -598,6 +600,7 @@ class AccountingService
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
                 'status' => 'posted',
+                'approval_status' => '2',
                 'posted_at' => now(),
                 'posted_by' => $actorId,
             ]);
@@ -749,6 +752,7 @@ class AccountingService
                 'total_debit' => $amountToPay,
                 'total_credit' => $amountToPay,
                 'status' => 'posted',
+                'approval_status' => '2',
                 'posted_at' => now(),
                 'posted_by' => $actorId,
             ]);
@@ -850,6 +854,7 @@ class AccountingService
                 'total_debit' => $refund->amount,
                 'total_credit' => $refund->amount,
                 'status' => 'posted',
+                'approval_status' => '2',
                 'posted_at' => now(),
                 'posted_by' => $actorId,
             ]);
@@ -1051,9 +1056,13 @@ class AccountingService
      * Debit: Payable (Liability)
      * Credit: Cash/Bank (Asset)
      */
+    /**
+     * Settle one or more AP invoices (RFD-originated) for a single vendor with one payment.
+     * Debit: Vendor AP (Liability)
+     * Credit: Cash/Bank (Asset)
+     */
     public function postDisbursement(
-        array $payableIds,
-        string $payableType, // 'refund', 'reimbursement'
+        array $apInvoiceIds,
         int $bankAccountId,
         int $paymentMethodId,
         float $amountToPay,
@@ -1061,13 +1070,21 @@ class AccountingService
         ?string $checkDate,
         int $actorId,
     ): ap_payment {
-        return DB::transaction(function () use ($payableIds, $payableType, $bankAccountId, $paymentMethodId, $amountToPay, $referenceNumber, $checkDate, $actorId) {
+        return DB::transaction(function () use ($apInvoiceIds, $bankAccountId, $paymentMethodId, $amountToPay, $referenceNumber, $checkDate, $actorId) {
+            $invoices = ap_invoice::whereIn('id', $apInvoiceIds)
+                ->lockForUpdate()
+                ->orderBy('due_date')
+                ->orderBy('id')
+                ->get();
 
-            // Get the payable records based on type
-            $payables = $this->getPayableRecords($payableIds, $payableType);
-
-            if ($payables->isEmpty()) {
-                throw new RuntimeException('No payables selected for disbursement.');
+            if ($invoices->isEmpty()) {
+                throw new RuntimeException('No invoices selected for disbursement.');
+            }
+            if ($invoices->pluck('vendor_id')->unique()->count() > 1) {
+                throw new RuntimeException('A single payment can only settle invoices for one vendor.');
+            }
+            if ($invoices->contains(fn($i) => in_array($i->status, ['paid', 'cancelled']))) {
+                throw new RuntimeException('One or more selected invoices are not open for payment.');
             }
 
             $paymentMethod = payment_method::findOrFail($paymentMethodId);
@@ -1082,39 +1099,56 @@ class AccountingService
                 throw new RuntimeException("Payment method '{$paymentMethod->name}' requires a check date.");
             }
 
+            $totalDue = round((float) $invoices->sum('amount_due'), 2);
+            $amountToPay = round($amountToPay, 2);
+
+            if ($amountToPay <= 0) {
+                throw new RuntimeException('Amount to pay must be greater than zero.');
+            }
+            if ($amountToPay > $totalDue) {
+                throw new RuntimeException("Amount to pay ({$amountToPay}) cannot exceed the total amount due ({$totalDue}).");
+            }
+            if (!$paymentMethod->allow_partial_payment && $amountToPay < $totalDue) {
+                throw new RuntimeException(
+                    "Payment method '{$paymentMethod->name}' does not allow partial payment. " .
+                    "Full amount due of {$totalDue} is required."
+                );
+            }
+
             $bankAccount = bank_account::findOrFail($bankAccountId);
             if (!$bankAccount->chart_of_account_id) {
                 throw new RuntimeException('Selected bank/cash account has no linked GL account.');
             }
 
-            // Get the payable account ID for debit
-            $payableAccountId = $this->getPayableAccountId($payableType, $bankAccount->organization_id);
+            $vendorId = $invoices->first()->vendor_id;
+            $vendor = vendor::findOrFail($vendorId);
+            $apAccountId = $this->resolveVendorApAccount($vendor);
 
             $journal = gl_journal::create([
                 'organization_id' => $bankAccount->organization_id,
                 'journal_no' => $this->nextNumber('GJ', gl_journal::class),
                 'journal_date' => now()->toDateString(),
-                'source_module' => 'disbursement',
-                'journal_type' => 'payable_disbursement',
-                'reference_type' => CashAdvanceRefund::class,
+                'source_module' => 'rfd',
+                'journal_type' => 'disbursement',
+                'reference_type' => ap_payment::class,
                 'reference_id' => 0,
-                'description' => 'Payable disbursement — ' . $referenceNumber,
+                'description' => 'Vendor disbursement — ' . $referenceNumber,
                 'status' => 'draft',
                 'created_by' => $actorId,
             ]);
 
-            // Debit: Payable account (reducing the liability)
             gl_journal_line::create([
                 'gl_journal_id' => $journal->id,
                 'line_no' => 1,
-                'gl_account_id' => $payableAccountId,
+                'gl_account_id' => $apAccountId,
                 'debit' => $amountToPay,
                 'credit' => 0,
-                'description' => 'Payment of ' . $payableType . ' payable',
+                'description' => 'AP settlement — ' . $vendor->name,
+                'subledger_type' => vendor::class,
+                'subledger_id' => $vendorId,
                 'created_by' => $actorId,
             ]);
 
-            // Credit: Cash/Bank account
             gl_journal_line::create([
                 'gl_journal_id' => $journal->id,
                 'line_no' => 2,
@@ -1127,11 +1161,10 @@ class AccountingService
 
             $this->assertBalanced($amountToPay, $amountToPay);
 
-            // Create payment record
             $payment = ap_payment::create([
                 'organization_id' => $bankAccount->organization_id,
                 'payment_no' => $this->nextNumber('PV', ap_payment::class),
-                'vendor_id' => null, // For employee payables, vendor is null
+                'vendor_id' => $vendorId,
                 'payment_date' => now()->toDateString(),
                 'bank_account_id' => $bankAccount->id,
                 'payment_method_id' => $paymentMethod->id,
@@ -1144,7 +1177,6 @@ class AccountingService
                 'status' => 'posted',
                 'gl_journal_id' => $journal->id,
                 'created_by' => $actorId,
-                'remarks' => 'Employee payable disbursement - ' . $referenceNumber,
             ]);
 
             $journal->update([
@@ -1152,16 +1184,149 @@ class AccountingService
                 'total_debit' => $amountToPay,
                 'total_credit' => $amountToPay,
                 'status' => 'posted',
+                'approval_status' => '2',
                 'posted_at' => now(),
                 'posted_by' => $actorId,
             ]);
 
-            // Mark payables as paid
-            $this->markPayablesAsPaid($payables, $actorId);
+            $remaining = $amountToPay;
+            foreach ($invoices as $invoice) {
+                if ($remaining <= 0) {
+                    break;
+                }
+                $apply = min($remaining, (float) $invoice->amount_due);
+                if ($apply <= 0) {
+                    continue;
+                }
+
+                ap_payment_application::create([
+                    'ap_payment_id' => $payment->id,
+                    'ap_invoice_id' => $invoice->id,
+                    'amount_applied' => $apply,
+                ]);
+                $invoice->applyPayment($apply);
+                $remaining = round($remaining - $apply, 2);
+
+                if ($invoice->source_type === rfd_header::class) {
+                    $this->markRfdDisbursed((int) $invoice->source_id, $actorId);
+                }
+            }
 
             return $payment;
         });
     }
+    // public function postDisbursement(
+    //     array $payableIds,
+    //     string $payableType, // 'refund', 'reimbursement'
+    //     int $bankAccountId,
+    //     int $paymentMethodId,
+    //     float $amountToPay,
+    //     string $referenceNumber,
+    //     ?string $checkDate,
+    //     int $actorId,
+    // ): ap_payment {
+    //     return DB::transaction(function () use ($payableIds, $payableType, $bankAccountId, $paymentMethodId, $amountToPay, $referenceNumber, $checkDate, $actorId) {
+
+    //         // Get the payable records based on type
+    //         $payables = $this->getPayableRecords($payableIds, $payableType);
+
+    //         if ($payables->isEmpty()) {
+    //             throw new RuntimeException('No payables selected for disbursement.');
+    //         }
+
+    //         $paymentMethod = payment_method::findOrFail($paymentMethodId);
+
+    //         if ($paymentMethod->requires_bank && !$bankAccountId) {
+    //             throw new RuntimeException("Payment method '{$paymentMethod->name}' requires a bank/cash account.");
+    //         }
+    //         if ($paymentMethod->requires_reference_no && !trim((string) $referenceNumber)) {
+    //             throw new RuntimeException("Payment method '{$paymentMethod->name}' requires a reference number.");
+    //         }
+    //         if ($paymentMethod->requires_check && !$checkDate) {
+    //             throw new RuntimeException("Payment method '{$paymentMethod->name}' requires a check date.");
+    //         }
+
+    //         $bankAccount = bank_account::findOrFail($bankAccountId);
+    //         if (!$bankAccount->chart_of_account_id) {
+    //             throw new RuntimeException('Selected bank/cash account has no linked GL account.');
+    //         }
+
+    //         // Get the payable account ID for debit
+    //         $payableAccountId = $this->getPayableAccountId($payableType, $bankAccount->organization_id);
+
+    //         $journal = gl_journal::create([
+    //             'organization_id' => $bankAccount->organization_id,
+    //             'journal_no' => $this->nextNumber('GJ', gl_journal::class),
+    //             'journal_date' => now()->toDateString(),
+    //             'source_module' => 'disbursement',
+    //             'journal_type' => 'payable_disbursement',
+    //             'reference_type' => CashAdvanceRefund::class,
+    //             'reference_id' => 0,
+    //             'description' => 'Payable disbursement — ' . $referenceNumber,
+    //             'status' => 'draft',
+    //             'created_by' => $actorId,
+    //         ]);
+
+    //         // Debit: Payable account (reducing the liability)
+    //         gl_journal_line::create([
+    //             'gl_journal_id' => $journal->id,
+    //             'line_no' => 1,
+    //             'gl_account_id' => $payableAccountId,
+    //             'debit' => $amountToPay,
+    //             'credit' => 0,
+    //             'description' => 'Payment of ' . $payableType . ' payable',
+    //             'created_by' => $actorId,
+    //         ]);
+
+    //         // Credit: Cash/Bank account
+    //         gl_journal_line::create([
+    //             'gl_journal_id' => $journal->id,
+    //             'line_no' => 2,
+    //             'gl_account_id' => $bankAccount->chart_of_account_id,
+    //             'debit' => 0,
+    //             'credit' => $amountToPay,
+    //             'description' => 'Disbursement — ' . $referenceNumber,
+    //             'created_by' => $actorId,
+    //         ]);
+
+    //         $this->assertBalanced($amountToPay, $amountToPay);
+
+    //         // Create payment record
+    //         $payment = ap_payment::create([
+    //             'organization_id' => $bankAccount->organization_id,
+    //             'payment_no' => $this->nextNumber('PV', ap_payment::class),
+    //             'vendor_id' => null, // For employee payables, vendor is null
+    //             'payment_date' => now()->toDateString(),
+    //             'bank_account_id' => $bankAccount->id,
+    //             'payment_method_id' => $paymentMethod->id,
+    //             'reference_number' => $referenceNumber,
+    //             'check_date' => $checkDate,
+    //             'disbursement_method' => $paymentMethod->name,
+    //             'currency_id' => $bankAccount->currency_id,
+    //             'exchange_rate' => 1,
+    //             'total_amount' => $amountToPay,
+    //             'status' => 'posted',
+    //             'gl_journal_id' => $journal->id,
+    //             'created_by' => $actorId,
+    //             'remarks' => 'Employee payable disbursement - ' . $referenceNumber,
+    //         ]);
+
+    //         $journal->update([
+    //             'reference_id' => $payment->id,
+    //             'total_debit' => $amountToPay,
+    //             'total_credit' => $amountToPay,
+    //             'status' => 'posted',
+    //             'approval_status' => '2',
+    //             'posted_at' => now(),
+    //             'posted_by' => $actorId,
+    //         ]);
+
+    //         // Mark payables as paid
+    //         $this->markPayablesAsPaid($payables, $actorId);
+
+    //         return $payment;
+    //     });
+    // }
 
     /**
      * Get payable records based on type
@@ -1309,6 +1474,7 @@ class AccountingService
                 'total_debit' => $absAmount,
                 'total_credit' => $absAmount,
                 'status' => 'posted',
+                'approval_status' => '2',
                 'posted_at' => now(),
                 'posted_by' => $actorId,
             ]);

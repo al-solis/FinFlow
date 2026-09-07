@@ -21,6 +21,11 @@ class vendor_bank_account extends Model
         'updated_by',
     ];
 
+    public const PII_FIELDS = [
+        'account_number' => 'bank_account',
+
+    ];
+
     public function vendor()
     {
         return $this->belongsTo(vendor::class, 'vendor_id');

@@ -7,6 +7,8 @@ use App\Models\bank_account;
 use App\Services\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Constants\Modules;
+use App\Traits\AuthorizesAccessRights;
 use App\Services\SystemSettings;
 use App\Models\payment_method;
 use App\Models\CashAdvance;
@@ -15,6 +17,7 @@ use RuntimeException;
 
 class DisbursementController extends Controller
 {
+    use AuthorizesAccessRights;
     protected function getOrganizationId()
     {
         $settings = SystemSettings::get();
@@ -27,6 +30,8 @@ class DisbursementController extends Controller
 
     public function index()
     {
+        $this->authorizeRead(Modules::CM, Modules::CM_DV);
+
         // RFD Stats
         $rfdPendingApproval = rfd_header::where('approval_status', '1')->count();
         $rfdAwaitingDisbursement = rfd_header::where('approval_status', '2')
@@ -170,6 +175,8 @@ class DisbursementController extends Controller
      */
     public function disburse(Request $request, rfd_header $rfd)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_DV);
+
         $data = $request->validate([
             'ap_invoice_ids' => 'required|array|min:1',
             'ap_invoice_ids.*' => 'exists:ap_invoices,id',
@@ -202,6 +209,8 @@ class DisbursementController extends Controller
      */
     public function disburseCa(Request $request, CashAdvance $cashAdvance)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_DV);
+
         $data = $request->validate([
             'amount_to_pay' => 'required|numeric|min:0.01|max:' . $cashAdvance->remaining_amount,
             'bank_account_id' => 'required|exists:bank_accounts,id',
@@ -232,6 +241,8 @@ class DisbursementController extends Controller
      */
     public function disburseReimbursement(Request $request, CashAdvanceRefund $reimbursement)
     {
+        $this->authorizeCreate(Modules::CM, Modules::CM_DV);
+
         $data = $request->validate([
             'amount_to_pay' => 'required|numeric|min:0.01|max:' . $reimbursement->amount,
             'bank_account_id' => 'required|exists:bank_accounts,id',

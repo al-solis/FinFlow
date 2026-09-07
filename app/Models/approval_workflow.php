@@ -52,12 +52,13 @@ class approval_workflow extends Model
     public static function moduleOptions(): array
     {
         return [
-            'rfd' => 'Request for Disbursement',
             // 'payment' => 'Payment Request',
-            'ca' => 'Cash Advance Request',
             'liquidation' => 'Cash Advance Liquidation',
+            'ca' => 'Cash Advance Request',
+            'journal' => 'Journal Entry',
             'refund' => 'Refund Request',
             'reimbursement' => 'Reimbursement Request',
+            'rfd' => 'Request for Disbursement',
         ];
     }
 

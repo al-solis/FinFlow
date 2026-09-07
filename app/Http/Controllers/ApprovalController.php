@@ -2,19 +2,37 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Modules;
+use App\Services\AuthorizationService;
+use App\Services\SystemSettings;
 use App\Models\approval_transaction;
 use App\Models\rfd_header;
 use App\Models\CashAdvance;
 use App\Models\CashAdvanceLiquidation;
 use App\Models\CashAdvanceRefund;
+use App\Models\gl_journal;
+use App\Traits\AuthorizesAccessRights;
+use App\Traits\WithSystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+
 class ApprovalController extends Controller
 {
+    use AuthorizesAccessRights;
+    use WithSystemSettings;
+
+    private function getOrganizationId()
+    {
+        $settings = SystemSettings::get();
+        return $settings ? $settings->id : null;
+    }
+
+
     public function index(Request $request)
     {
+        // $this->authorizeRead(Modules::APPW, Modules::APPW_APPR);
         $user = Auth::user();
 
         // Get pending approval count for the user
@@ -38,6 +56,7 @@ class ApprovalController extends Controller
                         CashAdvance::class => ['employee', 'creator'],
                         CashAdvanceLiquidation::class => ['cashAdvance', 'employee', 'creator'],
                         CashAdvanceRefund::class => ['employee', 'creator'],
+                        gl_journal::class => ['creator'],
                     ]);
                 }
             ])
@@ -61,8 +80,9 @@ class ApprovalController extends Controller
         $caCount = CashAdvance::count();
         $liquidationCount = CashAdvanceLiquidation::count();
         $refundCount = CashAdvanceRefund::count();
+        $journalCount = gl_journal::count();
 
-        return $rfdCount + $caCount + $liquidationCount + $refundCount;
+        return $rfdCount + $caCount + $liquidationCount + $refundCount + $journalCount;
     }
 
     /**
@@ -75,6 +95,7 @@ class ApprovalController extends Controller
             CashAdvance::class => 'Cash Advance',
             CashAdvanceLiquidation::class => 'Liquidation',
             CashAdvanceRefund::class => 'Refund',
+            gl_journal::class => 'Journal Entry',
         ];
 
         return $map[$type] ?? 'Unknown';
@@ -90,6 +111,7 @@ class ApprovalController extends Controller
             CashAdvance::class => 'bg-purple-50 text-purple-700',
             CashAdvanceLiquidation::class => 'bg-green-50 text-green-700',
             CashAdvanceRefund::class => 'bg-orange-50 text-orange-700',
+            gl_journal::class => 'bg-indigo-50 text-indigo-700',
         ];
 
         return $map[$type] ?? 'bg-gray-50 text-gray-700';

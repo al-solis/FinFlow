@@ -588,7 +588,7 @@
                         {{ optional($organization->updated_at)->format('F d, Y h:i A') }}
                     </div>
                     <div class="flex items-center gap-3">
-                        <a href="{{ route('dashboard') }}"
+                        <a href="{{ route('mainDashboard') }}"
                             class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">
                             Cancel
                         </a>

@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\SystemSettings;
+use App\Traits\AuthorizesAccessRights;
+use App\Traits\MasksPii;
+use App\Constants\Modules;
 use App\Models\bank_account;
 use App\Models\currency;
 use App\Models\chart_of_account;
 
 class BankAccountController extends Controller
 {
+    use AuthorizesAccessRights;
+    use MasksPii;
     protected function getOrganizationId()
     {
         $settings = SystemSettings::get();
@@ -20,6 +26,11 @@ class BankAccountController extends Controller
 
     public function index(Request $request)
     {
+
+        $this->authorizeRead(Modules::BM, Modules::BM_BANK);
+
+        setPiiContext(Modules::BM, Modules::BM_BANK);
+
         $search = $request->input('search');
         $status = $request->input('searchstatus');
 
@@ -91,6 +102,8 @@ class BankAccountController extends Controller
 
     public function create()
     {
+        $this->authorizeCreate(Modules::BM, Modules::BM_BANK);
+
         $bankAccount = null;
         $currencies = currency::where('status', 1)->get();
         $chartOfAccounts = chart_of_account::query()
@@ -120,6 +133,8 @@ class BankAccountController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorizeCreate(Modules::BM, Modules::BM_BANK);
+
         $request->validate([
             'bank_code' => [
                 'required',
@@ -166,6 +181,8 @@ class BankAccountController extends Controller
 
     public function edit($id)
     {
+        $this->authorizeUpdate(Modules::BM, Modules::BM_BANK);
+
         $bankAccount = bank_account::findOrFail($id);
         $currencies = currency::where('status', 1)->get();
 
@@ -195,6 +212,8 @@ class BankAccountController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->authorizeUpdate(Modules::BM, Modules::BM_BANK);
+
         $bankAccount = bank_account::findOrFail($id);
 
         $request->validate([

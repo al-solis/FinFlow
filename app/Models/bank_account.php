@@ -26,6 +26,11 @@ class bank_account extends Model
         'updated_by',
     ];
 
+    public const PII_FIELDS = [
+        'account_number' => 'bank_account',
+        'account_name' => 'full_name',
+    ];
+
     public function organization()
     {
         return $this->belongsTo(organization::class, 'organization_id');

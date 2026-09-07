@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\CashAdvance;
 use App\Models\CashAdvanceLiquidationDetail;
+use App\Models\CashAdvanceLiquidationAttachment;
 
 class CashAdvanceLiquidation extends Model
 {
@@ -89,6 +90,11 @@ class CashAdvanceLiquidation extends Model
         $ca = $this->cashAdvance;
         $remaining = (float) $ca->disbursed_amount - (float) $ca->liquidated_amount;
         return max(0, $this->total_expenses - $remaining);
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(CashAdvanceLiquidationAttachment::class, 'liquidation_id');
     }
 
     public function statusLabel(): string

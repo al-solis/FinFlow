@@ -68,11 +68,11 @@
                     <select name="searchapproval" onchange="this.form.submit()"
                         class="rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-xs">
                         <option value="">All Approval Status</option>
-                        <option value="draft" @selected(request('searchapproval') === 'draft')>Draft</option>
-                        <option value="pending" @selected(request('searchapproval') === 'pending')>Pending Approval</option>
-                        <option value="returned" @selected(request('searchapproval') === 'returned')>Returned</option>
-                        <option value="approved" @selected(request('searchapproval') === 'approved')>Approved</option>
-                        <option value="rejected" @selected(request('searchapproval') === 'rejected')>Rejected</option>
+                        <option value="0" @selected(request('searchapproval') === '0')>Draft</option>
+                        <option value="1" @selected(request('searchapproval') === '1')>Pending Approval</option>
+                        <option value="2" @selected(request('searchapproval') === '2')>Approved</option>
+                        <option value="3" @selected(request('searchapproval') === '3')>Rejected</option>
+                        <option value="4" @selected(request('searchapproval') === '4')>Returned</option>
                     </select>
                 </div>
 
@@ -150,7 +150,7 @@
                                 <!-- Status -->
                                 <td class="px-3 py-3 text-center">
                                     <span
-                                        class="inline-flex rounded-full {{ $rfd->statusBadgeClass() }} px-2.5 py-1 text-xs font-medium">
+                                        class="inline-flex rounded-full {{ $rfd->statusBadgeClass() }} px-2 py-0.5 text-[10px] font-medium">
                                         {{ $rfd->statusLabel() }}
                                     </span>
                                 </td>

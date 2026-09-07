@@ -1,6 +1,6 @@
 @extends('dashboard')
 
-@section('title', 'Liquidate Cash Advance')
+@section('title', $isEdit ? 'Edit Liquidation' : 'Liquidate Cash Advance')
 
 @section('content')
     <div class="mx-auto max-w-6xl" x-data="liquidationBuilder()">
@@ -65,13 +65,13 @@
             </div>
 
             @php
-                $isEdit = $liquidation->exists ?? false;
                 $formAction = $isEdit
                     ? route('cm.liquidation.update', $liquidation)
                     : route('cm.liquidation.store', $cashAdvance);
             @endphp
 
-            <form method="POST" action="{{ $formAction }}" class="px-8 py-6" x-ref="liquidationForm">
+            <form method="POST" action="{{ $formAction }}" enctype="multipart/form-data" class="px-8 py-6"
+                x-ref="liquidationForm">
                 @csrf
                 @if ($isEdit)
                     @method('PUT')
@@ -90,7 +90,8 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Liquidation Date <span class="text-red-500">*</span>
                         </label>
-                        <input type="date" name="liquidation_date" value="{{ old('liquidation_date', date('Y-m-d')) }}"
+                        <input type="date" name="liquidation_date"
+                            value="{{ old('liquidation_date', isset($liquidation) && $liquidation->liquidation_date ? $liquidation->liquidation_date->format('Y-m-d') : date('Y-m-d')) }}"
                             required
                             class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500">
                     </div>
@@ -178,9 +179,7 @@
                                     <td colspan="2"></td>
                                 </tr>
                                 <tr class="border-t border-gray-200">
-                                    <td colspan="4" class="px-3 py-2 text-right text-sm">
-                                        Available Balance
-                                    </td>
+                                    <td colspan="4" class="px-3 py-2 text-right text-sm">Available Balance</td>
                                     <td class="px-3 py-2 text-right tabular-nums text-sm font-bold text-green-600"
                                         x-text="formatNumber(remainingBalance)"></td>
                                     <td colspan="2"></td>
@@ -196,13 +195,9 @@
                             </tfoot>
                         </table>
                     </div>
-
-                    <div class="mt-2 text-xs text-gray-500">
-                        Total expenses cannot exceed the remaining CA balance of {{ number_format($remainingAmount, 2) }}
-                    </div>
                 </div>
 
-                <!-- Credit Account Selection (Reimbursement Payable) - Only shown when excess exists -->
+                <!-- Credit Account Selection -->
                 <div x-show="excessAmount > 0" x-cloak class="mb-4 p-4 border border-indigo-200 bg-indigo-50 rounded-lg">
                     <div class="flex items-start gap-3">
                         <div class="flex-shrink-0 mt-1">
@@ -227,13 +222,11 @@
                                     class="w-full rounded-lg border border-indigo-300 bg-white px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
                                     <option value="">— Select Reimbursement Payable Account —</option>
                                     @foreach ($creditAccounts as $account)
-                                        <option value="{{ $account->id }}" @selected(old('credit_account_id', $creditAccountId ?? '') == $account->id)>
+                                        <option value="{{ $account->id }}" @selected(old('credit_account_id', $liquidation->credit_account_id ?? '') == $account->id)>
                                             {{ $account->account_code }} — {{ $account->account_name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <p class="mt-1 text-xs text-gray-500">This account will be credited for the excess amount
-                                </p>
                                 @error('credit_account_id')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
@@ -242,8 +235,73 @@
                     </div>
                 </div>
 
-                <!-- Hidden field for credit account when no excess -->
-                <input type="hidden" name="credit_account_id_hidden" x-bind:value="excessAmount > 0 ? '' : ''">
+                <!-- Attachments Section -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700">Attachments</h3>
+                        <button type="button" @click="addAttachment()"
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
+                            + Add Attachment
+                        </button>
+                    </div>
+
+                    <!-- New attachments to upload -->
+                    <div class="space-y-2 mt-3" x-show="attachments.length > 0">
+                        <template x-for="(attachment, index) in attachments" :key="attachment._key">
+                            <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <div class="flex-1">
+                                    <input type="file" :name="`attachment_files[${index}]`"
+                                        @change="handleFileSelect($event, index)"
+                                        class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                    <input type="text" :name="`attachment_descriptions[${index}]`"
+                                        x-model="attachment.description" placeholder="Attachment description (optional)"
+                                        class="mt-1 w-full rounded border border-gray-300 p-1.5 text-xs">
+                                </div>
+                                <div class="text-xs text-gray-500" x-show="attachment.file_name">
+                                    <span x-text="attachment.file_name"></span>
+                                    <span x-text="attachment.file_size"></span>
+                                </div>
+                                <button type="button" @click="removeAttachment(index)"
+                                    class="text-red-500 hover:text-red-700 text-lg">&times;</button>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Existing attachments display -->
+                    @if ($isEdit && $liquidation->attachments && $liquidation->attachments->count() > 0)
+                        <div class="mt-3">
+                            <h4 class="text-xs font-medium text-gray-700 mb-2">Current Attachments</h4>
+                            @foreach ($liquidation->attachments as $attachment)
+                                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2 border border-gray-200 mb-1"
+                                    x-data="{ deleted: false }" x-show="!deleted">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                        </svg>
+                                        <a href="{{ route('cm.liquidation.download-attachment', $attachment->id) }}"
+                                            target="_blank" class="text-xs text-blue-600 hover:text-blue-800">
+                                            {{ $attachment->original_filename }}
+                                        </a>
+                                        <span
+                                            class="text-xs text-gray-500">({{ number_format($attachment->file_size / 1024, 1) }}
+                                            KB)</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500">{{ $attachment->description }}</span>
+                                        @if (in_array($liquidation->approval_status, ['0', '4']) && $liquidation->employee_id == auth()->id())
+                                            <button type="button" @click="deleteAttachment({{ $attachment->id }}, $el)"
+                                                class="text-red-500 hover:text-red-700 text-sm">
+                                                &times;
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
 
                 <!-- Submit -->
                 <div class="flex items-center justify-end gap-3 border-t border-gray-200 pt-5">
@@ -268,6 +326,7 @@
         function liquidationBuilder() {
             return {
                 details: [],
+                attachments: [],
                 remainingBalance: {{ $remainingAmount }},
                 isEdit: {{ $isEdit ? 'true' : 'false' }},
 
@@ -277,8 +336,10 @@
                     @else
                         this.addDetail();
                     @endif
+                    this.attachments = [];
                 },
 
+                // Detail methods
                 addDetail() {
                     this.details.push({
                         _key: crypto.randomUUID(),
@@ -304,6 +365,50 @@
 
                 get excessAmount() {
                     return Math.max(0, this.totalExpenses - this.remainingBalance);
+                },
+
+                // Attachment methods
+                addAttachment() {
+                    this.attachments.push({
+                        _key: crypto.randomUUID(),
+                        file_name: '',
+                        file_size: '',
+                        description: '',
+                        file: null,
+                    });
+                },
+
+                removeAttachment(index) {
+                    this.attachments.splice(index, 1);
+                },
+
+                handleFileSelect(event, index) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.attachments[index].file_name = file.name;
+                        this.attachments[index].file_size = (file.size / 1024).toFixed(1) + ' KB';
+                        this.attachments[index].file = file;
+                    }
+                },
+
+                async deleteAttachment(id, rowEl) {
+                    if (!confirm('Delete this attachment?')) return;
+
+                    try {
+                        const res = await fetch(`/cm/liquidation/attachment/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            },
+                        });
+
+                        if (!res.ok) throw new Error('Delete failed');
+
+                        rowEl.remove();
+                    } catch (e) {
+                        alert('Could not delete attachment. Please try again.');
+                    }
                 },
 
                 formatNumber(value) {

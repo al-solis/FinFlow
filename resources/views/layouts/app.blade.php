@@ -82,4 +82,24 @@
     <script src="{{ asset('assets/js/apexcharts.min.js') }}"></script>
 </body>
 
+<!-- Footer with Data Privacy Notice -->
+<footer class="py-4 border-t border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-left items-center text-xs text-gray-500">
+            <div class="flex items-center">
+                <svg class="h-4 w-4 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Personal data displayed is masked based on your access rights in compliance with the Data
+                    Privacy Act of 2012 (Republic Act No. 10173)</span>
+            </div>
+            {{-- <div class="mt-2 md:mt-0">
+                @piiAccessBadge
+            </div> --}}
+        </div>
+    </div>
+</footer>
+
 </html>

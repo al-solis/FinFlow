@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Constants\Modules;
 use App\Traits\WithSystemSettings;
 use App\Traits\AuthorizesAccessRights;
 use App\Services\SystemSettings;
@@ -42,7 +43,7 @@ class RfdController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorizeRfdRead();
+        $this->authorizeRead(Modules::AP, Modules::AP_RFD);
 
         $rfds = rfd_header::query()
             ->with(['details.vendor', 'currency', 'attachments'])
@@ -63,7 +64,7 @@ class RfdController extends Controller
 
     public function create()
     {
-        $this->authorizeRfdCreate();
+        $this->authorizeCreate(Modules::AP, Modules::AP_RFD);
         // dd($this->withSystemSettings());
         return view('ap.rfd.form', $this->withSystemSettings([
             'rfdHeader' => new rfd_header(),
@@ -76,7 +77,12 @@ class RfdController extends Controller
 
     public function edit(rfd_header $rfd)
     {
-        $this->authorizeRfdUpdate();
+        $this->authorizeUpdate(Modules::AP, Modules::AP_RFD);
+
+        if (!$this->isAdmin() && !$this->ownsModel($rfd)) {
+            abort(403, 'You can only edit your own RFDs.');
+        }
+
         $this->authorizeDraftEdit($rfd);
 
         $lines = $rfd->details()->with([
@@ -111,7 +117,8 @@ class RfdController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorizeRfdCreate();
+        $this->authorizeCreate(Modules::AP, Modules::AP_RFD);
+
         $data = $this->validateHeader($request);
 
         DB::transaction(function () use ($request, $data) {
@@ -142,7 +149,12 @@ class RfdController extends Controller
 
     public function update(Request $request, rfd_header $rfd)
     {
-        $this->authorizeRfdUpdate();
+        $this->authorizeUpdate(Modules::AP, Modules::AP_RFD);
+
+        if (!$this->isAdmin() && !$this->ownsModel($rfd)) {
+            abort(403, 'You can only update your own RFDs.');
+        }
+
         $this->authorizeDraftEdit($rfd);
 
         $data = $this->validateHeader($request);
@@ -186,7 +198,7 @@ class RfdController extends Controller
      */
     public function downloadAttachment(rfd_attachment $attachment)
     {
-        $this->authorizeRfdRead();
+        $this->authorizeRead(Modules::AP, Modules::AP_RFD);
 
         if (!Storage::disk('private')->exists($attachment->file_path)) {
             abort(404, 'File not found.');
@@ -203,7 +215,7 @@ class RfdController extends Controller
      */
     public function deleteAttachment(rfd_attachment $attachment)
     {
-        $this->authorizeRfdDelete();
+        $this->authorizeDelete(Modules::AP, Modules::AP_RFD);
 
         DB::transaction(function () use ($attachment) {
             if (Storage::disk('private')->exists($attachment->file_path)) {
@@ -504,7 +516,12 @@ class RfdController extends Controller
     protected function lookups(): array
     {
         return [
-            'vendors' => vendor::where('organization_id', $this->getOrganizationId())->where('is_active', 1)->orderBy('name')->get(),
+            'vendors' => vendor::with('category')
+                ->whereHas('category', fn($q) => $q->where('organization_id', $this->getOrganizationId())
+                    ->where('code', '!=', 'EMP')
+                    ->where('is_active', 1))
+                ->where('organization_id', $this->getOrganizationId())->where('is_active', 1)
+                ->orderBy('name')->get(),
             'terms' => term::where('organization_id', $this->getOrganizationId())->where('status', 1)->orderBy('name')->get(),
             'paymentMethods' => payment_method::where('organization_id', $this->getOrganizationId())->where('status', 1)->orderBy('name')->get(),
             'currencies' => currency::where('status', 1)->orderBy('code')->get(),

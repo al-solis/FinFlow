@@ -8,6 +8,9 @@ use App\Models\bank_reconciliation_line;
 use App\Models\chart_of_account;
 use App\Services\AccountingService;
 use App\Services\SystemSettings;
+use App\Constants\Modules;
+use App\Services\AuthorizationService;
+use App\Traits\AuthorizesAccessRights;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +18,7 @@ use App\Models\account_structure;
 
 class BankReconciliationController extends Controller
 {
+    use AuthorizesAccessRights;
     public function __construct(protected AccountingService $accounting)
     {
     }
@@ -27,6 +31,8 @@ class BankReconciliationController extends Controller
 
     public function index()
     {
+        $this->authorizeRead(Modules::BM, Modules::BM_RECON);
+
         $organizationId = $this->getOrganizationId();
 
         $bankAccounts = bank_account::where('organization_id', $organizationId)
@@ -44,6 +50,8 @@ class BankReconciliationController extends Controller
 
     public function upload(Request $request)
     {
+        $this->authorizeCreate(Modules::BM, Modules::BM_RECON);
+
         $data = $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',
             'statement_file' => 'required|file|mimes:csv,txt|max:5120',
@@ -140,6 +148,8 @@ class BankReconciliationController extends Controller
 
     public function review(bank_reconciliation_import $import)
     {
+        $this->authorizeRead(Modules::BM, Modules::BM_RECON);
+
         $import->load(['bankAccount', 'lines' => fn($q) => $q->orderBy('line_no')]);
 
         $structure = account_structure::where('organization_id', $import->organization_id)
@@ -159,6 +169,8 @@ class BankReconciliationController extends Controller
 
     public function post(Request $request, bank_reconciliation_import $import)
     {
+        $this->authorizeUpdate(Modules::BM, Modules::BM_RECON);
+
         $data = $request->validate([
             'accepted' => 'array',
             'accepted.*' => 'boolean',

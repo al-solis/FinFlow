@@ -7,6 +7,10 @@ use App\Models\approval_workflow;
 use App\Models\approval_transaction_history;
 use App\Models\User;
 use App\Models\rfd_header;
+use App\Models\CashAdvance;
+use App\Models\CashAdvanceLiquidation;
+use App\Models\CashAdvanceRefund;
+use App\Models\gl_journal;
 
 class approval_transaction extends Model
 {
@@ -55,6 +59,7 @@ class approval_transaction extends Model
             CashAdvanceRefund::class => $this->approvable?->type === 'reimbursement'
             ? route('cm.reimbursement.showApproval', [$this->approvable_id, $this->id])
             : route('cm.refund.showApproval', [$this->approvable_id, $this->id]),
+            gl_journal::class => route('gl.journal.showApproval', [$this->approvable_id, $this->id]),
             default => '#',
         };
     }
@@ -68,6 +73,7 @@ class approval_transaction extends Model
             rfd_header::class => 'RFD',
             CashAdvance::class => 'Cash Advance',
             CashAdvanceLiquidation::class => 'Liquidation',
+            gl_journal::class => 'Journal Entry',
             CashAdvanceRefund::class => $this->approvable?->type === 'refund' ? 'Refund' : 'Reimbursement',
         ];
 
@@ -89,6 +95,7 @@ class approval_transaction extends Model
             rfd_header::class => 'bg-blue-50 text-blue-700',
             CashAdvance::class => 'bg-purple-50 text-purple-700',
             CashAdvanceLiquidation::class => 'bg-green-50 text-green-700',
+            gl_journal::class => 'bg-indigo-50 text-indigo-700',
         ];
 
         return $map[$this->approvable_type] ?? 'bg-gray-50 text-gray-700';
@@ -104,6 +111,7 @@ class approval_transaction extends Model
             CashAdvance::class => 'CA',
             CashAdvanceLiquidation::class => 'LIQ',
             CashAdvanceRefund::class => $this->approvable?->type === 'reimbursement' ? 'REIMB' : 'REF',
+            gl_journal::class => 'JRN',
             default => 'REQ',
         };
 
@@ -126,6 +134,7 @@ class approval_transaction extends Model
             CashAdvance::class => $approvable->employee,
             CashAdvanceLiquidation::class => $approvable->employee,
             CashAdvanceRefund::class => $approvable->employee,
+            gl_journal::class => $approvable->creator,
             default => null,
         };
 
@@ -152,6 +161,7 @@ class approval_transaction extends Model
             CashAdvance::class => $approvable->employee,
             CashAdvanceLiquidation::class => $approvable->employee,
             CashAdvanceRefund::class => $approvable->employee,
+            gl_journal::class => $approvable->creator,
             default => null,
         };
 

@@ -24,8 +24,12 @@ return new class extends Migration {
             $table->decimal('total_debit', 18, 6)->default(0);
             $table->decimal('total_credit', 18, 6)->default(0);
             $table->enum('status', ['draft', 'posted', 'reversed'])->default('draft');
+            $table->string('approval_status', 1)->default('0');
             $table->unsignedBigInteger('reversed_by_journal_id')->nullable();
             $table->timestamp('posted_at')->nullable();
+            $table->timestamp('submitted_at')->nullable();
+            $table->unsignedBigInteger('submitted_by')->nullable();
+            $table->unsignedBigInteger('approved_by')->nullable();
             $table->unsignedBigInteger('posted_by')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Modules;
+use App\Services\AuthorizationService;
 use App\Services\SystemSettings;
 use App\Models\approval_workflow;
 use App\Models\approval_workflow_step;
+use App\Traits\AuthorizesAccessRights;
+use App\Traits\WithSystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +19,9 @@ use App\Models\approval_transaction_history;
 
 class ApprovalWorkflowController extends Controller
 {
+    use AuthorizesAccessRights;
+    use WithSystemSettings;
+
     private function getOrganizationId()
     {
         $settings = SystemSettings::get();
@@ -22,6 +29,8 @@ class ApprovalWorkflowController extends Controller
     }
     public function index(Request $request)
     {
+        $this->authorizeRead(Modules::APPW, Modules::APPW_APPR);
+
         $workflows = approval_workflow::query()
             ->withCount('steps')
             ->whereHas('steps', function ($query) {
@@ -52,6 +61,8 @@ class ApprovalWorkflowController extends Controller
     // }
     public function create()
     {
+        $this->authorizeCreate(Modules::APPW, Modules::APPW_APPR);
+
         return view('appw.approval_workflows.create', [
             'workflow' => null,
             'steps' => [
@@ -74,6 +85,8 @@ class ApprovalWorkflowController extends Controller
     }
     public function store(Request $request)
     {
+        $this->authorizeCreate(Modules::APPW, Modules::APPW_APPR);
+
         $validated = $this->validateWorkflow($request);
 
         DB::transaction(function () use ($validated) {
@@ -94,6 +107,8 @@ class ApprovalWorkflowController extends Controller
 
     public function edit(approval_workflow $approval_workflow)
     {
+        $this->authorizeUpdate(Modules::APPW, Modules::APPW_APPR);
+
         $approval_workflow->load([
             'steps' => function ($query) {
                 $query->where('is_active', true);
@@ -146,6 +161,8 @@ class ApprovalWorkflowController extends Controller
 
     public function update(Request $request, approval_workflow $approval_workflow)
     {
+        $this->authorizeUpdate(Modules::APPW, Modules::APPW_APPR);
+
         $validated = $this->validateWorkflow($request);
 
         DB::transaction(function () use ($validated, $approval_workflow) {
@@ -164,6 +181,8 @@ class ApprovalWorkflowController extends Controller
 
     public function destroy(approval_workflow $approval_workflow)
     {
+        $this->authorizeDelete(Modules::APPW, Modules::APPW_APPR);
+
         if ($approval_workflow->transactions()->exists()) {
             return back()->with('error', 'This workflow already has transactions and cannot be deleted. Deactivate it instead.');
         }
@@ -177,6 +196,8 @@ class ApprovalWorkflowController extends Controller
 
     public function toggleStatus(approval_workflow $approval_workflow)
     {
+        $this->authorizeUpdate(Modules::APPW, Modules::APPW_APPR);
+
         $approval_workflow->update([
             'is_active' => !$approval_workflow->is_active,
             'updated_by' => Auth::id(),

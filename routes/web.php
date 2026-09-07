@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportController;
@@ -33,21 +34,29 @@ use App\Http\Controllers\GeneralLedgerController;
 use App\Http\Controllers\BankReconciliationController;
 use App\Http\Controllers\CashAdvanceController;
 use App\Http\Controllers\CashAdvanceDisbursementController;
-
+use App\Http\Controllers\JournalEntryController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AccessRightController;
+use App\Http\Controllers\BalanceSheetController;
+use App\Http\Controllers\IncomeStatementController;
+use App\Http\Controllers\ReportExportController;
+use App\Http\Controllers\TaxReportController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'mainDashboard'])->name('mainDashboard');
+
+//Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
 
+    Route::get('/dashboard', [DashboardController::class, 'mainDashboard'])->name('mainDashboard');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-
     // Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
     // Route::get('/setup/chart', [MainAccountController::class, 'index'])->name('setup.chart.index');
-    // Route::post('/setup/chart', [MainAccountController::class, 'store'])->name('setup.chart.store');
+    // Route::post('/setup/chart', [MainAccountController::class, 'store'])->name('setup hink that..chart.store');
     // Route::put('/setup/chart/{id}', [MainAccountController::class, 'updateChart'])->name('setup.chart.update');
     // Route::get('/setup/chart/category', [AccountCategoryController::class, 'index'])->name('setup.chart.category.index');
     // Route::post('/setup/chart/category', [AccountCategoryController::class, 'store'])->name('setup.chart.category.store');
@@ -204,6 +213,20 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/general-ledger', [GeneralLedgerController::class, 'index'])->name('gr');
         Route::get('/trial-balance', [TrialBalanceController::class, 'index'])->name('trial');
+
+        // Journal Entries
+        Route::get('/journals', [JournalEntryController::class, 'index'])->name('journal');
+        Route::get('/journals/create', [JournalEntryController::class, 'create'])->name('journals.create');
+        Route::post('/journals', [JournalEntryController::class, 'store'])->name('journals.store');
+        Route::get('/journals/{journal}/edit', [JournalEntryController::class, 'edit'])->name('journals.edit');
+        Route::put('/journals/{journal}', [JournalEntryController::class, 'update'])->name('journals.update');
+        Route::delete('/journals/{journal}', [JournalEntryController::class, 'destroy'])->name('journals.destroy');
+
+        // Journal Approval
+        Route::get('/journals/{journal}/approval/{transaction}', [JournalEntryController::class, 'showApproval'])->name('journal.showApproval');
+        Route::post('/journals/approvals/{transaction}/approve', [JournalEntryController::class, 'approve'])->name('journals.approve');
+        Route::post('/journals/approvals/{transaction}/return', [JournalEntryController::class, 'returnJournal'])->name('journals.return');
+        Route::post('/journals/approvals/{transaction}/reject', [JournalEntryController::class, 'rejectJournal'])->name('journals.reject');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
@@ -221,6 +244,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/currency', [CurrencyController::class, 'index'])->name('currency');
         Route::post('/currency', [CurrencyController::class, 'store'])->name('currency.store');
         Route::put('/currency/{currency}', [CurrencyController::class, 'update'])->name('currency.update');
+
+        Route::get('/users', [UserController::class, 'index'])->name('user');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+
+        Route::get('/roles', [RoleController::class, 'index'])->name('role');
+        Route::get('/roles/create', [RoleController::class, 'create'])->name('roles.create');
+        Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+        Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+        Route::put('/roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+
+        Route::get('/access-rights', [AccessRightController::class, 'index'])->name('access');
+        Route::put('/access-rights', [AccessRightController::class, 'update'])->name('access.update');
     });
 
     Route::prefix('ap')->name('ap.')->group(function () {
@@ -245,9 +283,13 @@ Route::middleware('auth')->group(function () {
         Route::put('/vendor/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
 
 
+        // Vendor Categories
         Route::get('/vendor/category', [VendorCategoryController::class, 'index'])->name('categories');
+        Route::get('/vendor/category/create', [VendorCategoryController::class, 'create'])->name('categories.create');
         Route::post('/vendor/category', [VendorCategoryController::class, 'store'])->name('categories.store');
+        Route::get('/vendor/category/{vendorCategory}/edit', [VendorCategoryController::class, 'edit'])->name('categories.edit');
         Route::put('/vendor/category/{vendorCategory}', [VendorCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/vendor/category/{vendorCategory}', [VendorCategoryController::class, 'destroy'])->name('categories.destroy');
     });
 
     Route::prefix('cm')->name('cm.')->group(function () {
@@ -290,6 +332,10 @@ Route::middleware('auth')->group(function () {
             ->name('liquidation.return');
         Route::post('/liquidation/approval/{transaction}/reject', [CashAdvanceController::class, 'rejectLiquidation'])
             ->name('liquidation.reject');
+
+        // Liquidation Attachments
+        Route::get('/liquidation/attachment/{attachment}/download', [CashAdvanceController::class, 'downloadLiquidationAttachment'])->name('liquidation.download-attachment');
+        Route::delete('/liquidation/attachment/{attachment}', [CashAdvanceController::class, 'deleteLiquidationAttachment'])->name('liquidation.delete-attachment');
 
         // Refunds
         Route::get('/refunds', [CashAdvanceController::class, 'refundsIndex'])->name('ref');
@@ -345,6 +391,41 @@ Route::middleware('auth')->group(function () {
             ->name('toggleStatus');
     });
 
+    // Reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/trial-balance', [ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+    Route::get('/reports/balance-sheet', [ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+    Route::get('/reports/income-statement', [ReportController::class, 'incomeStatement'])->name('reports.income-statement');
+    Route::get('/reports/cash-flow', [ReportController::class, 'cashFlow'])->name('reports.cash-flow');
+
+    // Balance Sheet (dedicated)
+    Route::get('/fin/balance-sheet', [BalanceSheetController::class, 'index'])->name('fin.balance-sheet');
+
+    // Income Statement (dedicated)
+    Route::get('/fin/income-statement', [IncomeStatementController::class, 'index'])->name('fin.income-statement');
+
+    // Report Export
+    Route::get('/reports/export', [ReportExportController::class, 'export'])->name('reports.export');
+
+    // Tax Report Routes
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/tax', [TaxReportController::class, 'index'])->name('tax');
+        Route::get('/tax/export', [TaxReportController::class, 'export'])->name('tax.export');
+        Route::get('/tax/generate', [TaxReportController::class, 'generate'])->name('tax.generate');
+    });
+
+    // Also add to FIN module routes
+    Route::get('/fin/tax-report', [TaxReportController::class, 'index'])->name('fin.tax');
+
+    // Dedicated Report Pages
+    Route::get('/fin/balance-sheet', [BalanceSheetController::class, 'index'])->name('fin.bs');
+    Route::get('/fin/income-statement', [IncomeStatementController::class, 'index'])->name('fin.is');
+    Route::get('/fin/cash-flow', [ReportController::class, 'cashFlow'])->name('fin.cf');
+
+    // Quick Reports from Dashboard
+    Route::get('/reports/quick/trial-balance', [ReportController::class, 'trialBalance'])->name('reports.quick.trial-balance');
+    Route::get('/reports/quick/balance-sheet', [ReportController::class, 'balanceSheet'])->name('reports.quick.balance-sheet');
+    Route::get('/reports/quick/income-statement', [ReportController::class, 'incomeStatement'])->name('reports.quick.income-statement');
 
 });
 

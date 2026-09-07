@@ -3,11 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Monolog\Handler\RollbarHandler;
-use App\Models\organization;
-use App\Models\role;
-use App\Models\module;
-use App\Models\sub_module;
 
 class access_right extends Model
 {
@@ -26,10 +21,12 @@ class access_right extends Model
         'updated_by',
     ];
 
-    public function organization()
-    {
-        return $this->belongsTo(organization::class, 'organization_id');
-    }
+    protected $casts = [
+        'can_create' => 'boolean',
+        'can_read' => 'boolean',
+        'can_update' => 'boolean',
+        'can_delete' => 'boolean',
+    ];
 
     public function role()
     {
@@ -44,5 +41,10 @@ class access_right extends Model
     public function subModule()
     {
         return $this->belongsTo(sub_module::class, 'sub_module_id');
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(organization::class);
     }
 }
