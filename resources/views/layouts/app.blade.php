@@ -77,9 +77,10 @@
 
     <script src="{{ asset('assets/js/preline.js') }}"></script>
     <script src="{{ asset('assets/js/flowbite.min.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('assets/js/select2.min.js') }}"></script>
-    <script src="{{ asset('assets/js/apexcharts.min.js') }}"></script>
+
+    @stack('scripts')
+
 </body>
 
 <!-- Footer with Data Privacy Notice -->
