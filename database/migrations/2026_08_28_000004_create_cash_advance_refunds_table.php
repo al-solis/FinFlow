@@ -35,10 +35,10 @@ return new class extends Migration {
             $table->timestamps();
 
             // Foreign keys
-            $table->foreign('organization_id')->references('id')->on('organizations')->onDelete('set null');
-            $table->foreign('cash_advance_id')->references('id')->on('cash_advances')->onDelete('set null');
-            $table->foreign('liquidation_id')->references('id')->on('cash_advance_liquidations')->onDelete('set null');
-            $table->foreign('gl_account_id')->references('id')->on('chart_of_accounts')->onDelete('set null');
+            $table->foreign('organization_id')->references('id')->on('organizations');
+            $table->foreign('cash_advance_id')->references('id')->on('cash_advances');
+            $table->foreign('liquidation_id')->references('id')->on('cash_advance_liquidations');
+            $table->foreign('gl_account_id')->references('id')->on('chart_of_accounts');
             $table->foreign('employee_id')->references('id')->on('users');
             $table->foreign('approved_by')->references('id')->on('users');
             $table->foreign('submitted_by')->references('id')->on('users');

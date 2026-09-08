@@ -23,8 +23,6 @@ return new class extends Migration {
                 $table->foreign('role_id')->references('id')->on('roles');
                 $table->string('profile_picture')->nullable();
                 $table->string('department_id', 10)->nullable();
-                $table->unsignedBigInteger('vendor_code')->nullable();
-                $table->foreign('vendor_code')->references('id')->on('vendors')->onDelete('set null');
                 $table->timestamp('email_verified_at')->nullable();
                 $table->string('password');
                 $table->rememberToken();
