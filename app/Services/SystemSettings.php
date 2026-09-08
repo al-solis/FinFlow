@@ -9,16 +9,23 @@ class SystemSettings
 {
     public static function get(): ?organization
     {
-        return Cache::rememberForever('organization_settings', function () {
-            return organization::with('currency')
-                ->where('status', 1)
-                ->first();
-        });
+        $organizationId = Cache::rememberForever(
+            'organization_settings_id',
+            function () {
+                return organization::where('status', 1)->value('id');
+            }
+        );
+
+        if (!$organizationId) {
+            return null;
+        }
+
+        return organization::with('currency')->find($organizationId);
     }
 
     public static function clear(): void
     {
-        Cache::forget('organization_settings');
+        Cache::forget('organization_settings_id');
     }
 
     public static function getSetting(string $key, $default = null)
