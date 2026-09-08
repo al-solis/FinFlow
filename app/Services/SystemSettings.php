@@ -2,15 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\organization;
+use App\Models\Organization;
 use Illuminate\Support\Facades\Cache;
 
 class SystemSettings
 {
-    public static function get(): ?organization
+    public static function get(): ?Organization
     {
         return Cache::rememberForever('organization_settings', function () {
-            return organization::with('currency')
+            return Organization::with('currency')
                 ->where('status', 1)
                 ->first();
         });
