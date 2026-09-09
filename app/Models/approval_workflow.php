@@ -71,6 +71,7 @@ class approval_workflow extends Model
      * Find the active workflow that matches a module + amount.
      * Falls back to a workflow with no amount range set (a catch-all).
      */
+
     public static function resolveFor(string $moduleCode, float $amount, ?int $organizationId = null)
     {
         return static::query()
@@ -78,15 +79,10 @@ class approval_workflow extends Model
             ->where('is_active', true)
             ->when($organizationId, fn($q) => $q->where(function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
-                // ->orWhereNull('organization_id');
             }))
-            ->where(function ($q) use ($amount) {
-                $q->whereRaw('ISNULL(min_amount, 0) = 0')->orWhere('min_amount', '<=', $amount);
-            })
-            ->where(function ($q) use ($amount) {
-                $q->whereRaw('ISNULL(max_amount, 0) = 0')->orWhere('max_amount', '>=', $amount);
-            })
-            ->orderByRaw('ISNULL(min_amount, 0), ISNULL(max_amount, 0)') // prefer the more specific range first
+            ->where(fn($q) => $q->whereNull('min_amount')->orWhere('min_amount', '<=', $amount))
+            ->where(fn($q) => $q->whereNull('max_amount')->orWhere('max_amount', '>=', $amount))
+            ->orderByRaw('CASE WHEN min_amount IS NULL THEN 0 ELSE 1 END, CASE WHEN max_amount IS NULL THEN 0 ELSE 1 END')
             ->first();
     }
 }

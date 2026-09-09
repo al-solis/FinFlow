@@ -75,7 +75,7 @@
         </button>
     </div>
 
-    <script src="{{ asset('assets/js/preline.js') }}"></script>
+    {{-- <script src="{{ asset('assets/js/preline.js') }}"></script> --}}
     <script src="{{ asset('assets/js/flowbite.min.js') }}"></script>
     <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
