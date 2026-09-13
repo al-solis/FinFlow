@@ -72,7 +72,8 @@ class CashAdvance extends Model
 
     public function latestApprovalTransaction()
     {
-        return $this->morphOne(approval_transaction::class, 'approvable')->latestOfMany();
+        return $this->morphOne(approval_transaction::class, 'approvable')
+            ->latestOfMany();
     }
 
     public function glAccount()

@@ -143,7 +143,7 @@
                                     : 'Manual';
                             @endphp
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-3 font-medium text-indigo-600">
+                                <td class="px-6 py-1.5 font-medium text-indigo-600">
                                     <button type="button" data-drawer-target="drawer-reim-{{ $reimbursement->id }}"
                                         data-drawer-show="drawer-reim-{{ $reimbursement->id }}"
                                         data-drawer-placement="right"
@@ -151,7 +151,7 @@
                                         REIM-{{ str_pad($reimbursement->id, 6, '0', STR_PAD_LEFT) }}
                                     </button>
                                 </td>
-                                <td class="px-3 py-3">
+                                <td class="px-3 py-1.5">
                                     @if ($isFromLiquidation)
                                         <span
                                             class="inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
@@ -164,17 +164,17 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-3 py-3 text-gray-700">
+                                <td class="px-3 py-1.5 text-gray-700">
                                     {{ $reimbursement->employee?->last_name ?? '—' }},
                                     {{ $reimbursement->employee?->first_name ?? '—' }}
                                 </td>
-                                <td class="px-3 py-3 text-gray-700 max-w-xs truncate">
+                                <td class="px-3 py-1.5 text-gray-700 max-w-xs truncate">
                                     {{ Str::limit($reimbursement->purpose ?? '—', 50) }}
                                 </td>
-                                <td class="px-3 py-3 text-right tabular-nums font-medium text-gray-700">
+                                <td class="px-3 py-1.5 text-right tabular-nums font-medium text-gray-700">
                                     {{ number_format($reimbursement->amount, 2) }}
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     <span
                                         class="inline-flex rounded-full {{ $reimbursement->statusBadgeClass() }} px-2.5 py-1 text-xs font-medium">
                                         {{ $reimbursement->statusLabel() }}
@@ -185,14 +185,19 @@
                                             Liquidation</span>
                                     @endif
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     <div class="flex items-center justify-end gap-1">
                                         <button type="button" data-drawer-target="drawer-reim-{{ $reimbursement->id }}"
                                             data-drawer-show="drawer-reim-{{ $reimbursement->id }}"
-                                            data-drawer-placement="right"
-                                            class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
-                                            title="View Details">
-                                            View
+                                            data-drawer-placement="right" title = "View Reimbursement"
+                                            class="text-gray-500 hover:text-blue-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z" />
+                                                <path
+                                                    d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0" />
+                                            </svg>
                                         </button>
                                         @if (
                                             $isFromLiquidation &&

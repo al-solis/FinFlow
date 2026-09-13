@@ -142,7 +142,8 @@
                                     {{ $rfd->remarks ?: '—' }}
                                     <div class="text-gray-400">{{ $rfd->details->count() }} line item(s)</div>
                                 </td>
-                                <td class="px-3 py-3 text-right tabular-nums">{{ number_format($rfd->total_due, 2) }}</td>
+                                <td class="px-3 py-3 text-right tabular-nums">{{ number_format($rfd->total_due, 2) }}
+                                </td>
                                 <td class="px-3 py-3 text-center">
                                     @if ($rfd->payment_status == 1)
                                         <span
@@ -161,7 +162,7 @@
                                         <button type="button" data-drawer-target="drawer-rfd-{{ $rfd->id }}"
                                             data-drawer-show="drawer-rfd-{{ $rfd->id }}"
                                             data-drawer-placement="right"
-                                            class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">
+                                            class="rounded-lg bg-green-600 px-3 py-3 text-xs font-medium text-white hover:bg-green-700">
                                             Disburse
                                         </button>
                                     @else
@@ -245,7 +246,7 @@
                                         <button type="button" data-drawer-target="drawer-ca-{{ $ca->id }}"
                                             data-drawer-show="drawer-ca-{{ $ca->id }}"
                                             data-drawer-placement="right"
-                                            class="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-700">
+                                            class="rounded-lg bg-purple-600 px-3 py-3 text-xs font-medium text-white hover:bg-purple-700">
                                             Disburse
                                         </button>
                                     @else
@@ -340,7 +341,7 @@
                                         <button type="button" data-drawer-target="drawer-reim-{{ $reimbursement->id }}"
                                             data-drawer-show="drawer-reim-{{ $reimbursement->id }}"
                                             data-drawer-placement="right"
-                                            class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                                            class="rounded-lg bg-indigo-600 px-3 py-3 text-xs font-medium text-white hover:bg-indigo-700">
                                             Disburse
                                         </button>
                                     @else

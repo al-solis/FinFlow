@@ -37,6 +37,7 @@ class approval_workflow extends Model
     public function steps()
     {
         return $this->hasMany(approval_workflow_step::class, 'approval_workflow_id')
+            ->where('is_active', true)
             ->orderBy('step_no');
     }
 

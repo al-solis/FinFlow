@@ -133,7 +133,7 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="flex items-center justify-end gap-3 border-t border-gray-200 pt-5">
+                <div class="mb-4 flex items-center justify-end gap-3 border-t border-gray-200 pt-5">
                     @if ($step->can_return_to_requester)
                         <button type="submit" formaction="{{ route('cm.ca.return', $transaction->id) }}"
                             class="rounded-lg border border-orange-300 bg-white px-5 py-2.5 text-sm font-medium text-orange-700 hover:bg-orange-50">

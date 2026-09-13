@@ -144,30 +144,30 @@
                                 $isPaid = $refund->isPaid();
                             @endphp
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-3 font-medium text-purple-600">
+                                <td class="px-6 py-1.5 font-medium text-purple-600">
                                     <button type="button" data-drawer-target="drawer-ref-{{ $refund->id }}"
                                         data-drawer-show="drawer-ref-{{ $refund->id }}" data-drawer-placement="right"
                                         class="text-purple-600 hover:text-purple-800 hover:underline transition-colors">
                                         REF-{{ str_pad($refund->id, 6, '0', STR_PAD_LEFT) }}
                                     </button>
                                 </td>
-                                <td class="px-3 py-3 text-gray-700">
+                                <td class="px-3 py-1.5 text-gray-700">
                                     <a href="{{ route('cm.ca') }}?search={{ $refund->cash_advance_id }}"
                                         class="text-blue-600 hover:underline">
                                         CA-{{ str_pad($refund->cash_advance_id, 6, '0', STR_PAD_LEFT) }}
                                     </a>
                                 </td>
-                                <td class="px-3 py-3 text-gray-700">
+                                <td class="px-3 py-1.5 text-gray-700">
                                     {{ $refund->employee?->last_name ?? '—' }},
                                     {{ $refund->employee?->first_name ?? '—' }}
                                 </td>
-                                <td class="px-3 py-3 text-gray-700 max-w-xs truncate">
+                                <td class="px-3 py-1.5 text-gray-700 max-w-xs truncate">
                                     {{ Str::limit($refund->purpose ?? ($refund->cashAdvance?->purpose ?? '—'), 50) }}
                                 </td>
-                                <td class="px-3 py-3 text-right tabular-nums font-medium text-gray-700">
+                                <td class="px-3 py-1.5 text-right tabular-nums font-medium text-gray-700">
                                     {{ number_format($refund->amount, 2) }}
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     <span
                                         class="inline-flex rounded-full {{ $refund->statusBadgeClass() }} px-2 py-0.3 text-[10px] font-medium">
                                         {{ $refund->statusLabel() }}
@@ -185,11 +185,17 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     <button type="button" data-drawer-target="drawer-ref-{{ $refund->id }}"
                                         data-drawer-show="drawer-ref-{{ $refund->id }}" data-drawer-placement="right"
-                                        class="inline-flex items-center gap-1 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-700 transition-colors">
-                                        View
+                                        class="text-gray-500 hover:text-purple-600" title="View Refund">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                            <path
+                                                d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z" />
+                                            <path
+                                                d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0" />
+                                        </svg>
                                     </button>
                                 </td>
                             </tr>

@@ -102,6 +102,8 @@
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 GL Debit Account <span class="text-red-500">*</span>
+                                <span class="text-xs text-gray-500">(The GL account to which this cash advance will be
+                                    charged.)</span>
                             </label>
                             <select name="gl_account_id" required
                                 class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
@@ -142,6 +144,18 @@
                         </div>
                     </div>
 
+                    <span class="mt-1 text-xs text-blue-900">Journal Preview</span><span class="mt-1 text-xs text-blue-500">
+                        (bank account selected at disbursement)</span><br>
+                    <span class="mt-1 text-xs text-blue-500">
+                        Dr Advances to Employees ...
+                        <span id="journal-debit-amount">0.00</span>
+                    </span>
+                    <br>
+
+                    <span class="text-xs text-blue-500">
+                        &nbsp;&nbsp;&nbsp;&nbsp;Cr [Bank Account - selected at disbursement] ...
+                        <span id="journal-credit-amount">0.00</span>
+                    </span>
                     @if ($isEdit)
                         <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                             <p class="text-xs text-gray-500">
@@ -168,4 +182,28 @@
             </div>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const amountInput = document.querySelector('input[name="amount"]');
+            const debitAmount = document.getElementById('journal-debit-amount');
+            const creditAmount = document.getElementById('journal-credit-amount');
+
+            function updateJournalPreview() {
+                const amount = parseFloat(amountInput.value) || 0;
+
+                const formatted = new Intl.NumberFormat('en-PH', {
+                    style: 'currency',
+                    currency: 'PHP'
+                }).format(amount);
+
+                debitAmount.textContent = formatted;
+                creditAmount.textContent = formatted;
+            }
+
+            amountInput.addEventListener('input', updateJournalPreview);
+
+            updateJournalPreview();
+        });
+    </script>
 @endsection

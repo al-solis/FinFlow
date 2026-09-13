@@ -57,8 +57,8 @@ class approval_transaction extends Model
             CashAdvance::class => route('cm.ca.showApproval', [$this->approvable_id, $this->id]),
             CashAdvanceLiquidation::class => route('cm.liquidation.showApproval', [$this->approvable_id, $this->id]),
             CashAdvanceRefund::class => $this->approvable?->type === 'reimbursement'
-            ? route('cm.reimbursement.showApproval', [$this->approvable_id, $this->id])
-            : route('cm.refund.showApproval', [$this->approvable_id, $this->id]),
+                ? route('cm.reimbursement.showApproval', [$this->approvable_id, $this->id])
+                : route('cm.refund.showApproval', [$this->approvable_id, $this->id]),
             gl_journal::class => route('gl.journal.showApproval', [$this->approvable_id, $this->id]),
             default => '#',
         };

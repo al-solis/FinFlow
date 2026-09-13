@@ -79,6 +79,7 @@ class RfdController extends Controller
     {
         $this->authorizeUpdate(Modules::AP, Modules::AP_RFD);
 
+        // dd($this->ownsModel($rfd, 'created_by'), $rfd->created_by, Auth::id());
         if (!$this->isAdmin() && !$this->ownsModel($rfd)) {
             abort(403, 'You can only edit your own RFDs.');
         }

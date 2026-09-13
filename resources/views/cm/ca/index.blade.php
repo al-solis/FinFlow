@@ -125,35 +125,35 @@
                                 $canReimburse = $isDisbursed && $remainingAmount < 0;
                             @endphp
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-3 font-medium text-blue-600">
+                                <td class="px-6 py-1.5 font-medium text-blue-600">
                                     <button type="button" data-drawer-target="drawer-ca-{{ $ca->id }}"
                                         data-drawer-show="drawer-ca-{{ $ca->id }}" data-drawer-placement="right"
                                         class="text-blue-600 hover:text-blue-800 hover:underline transition-colors">
                                         CA-{{ str_pad($ca->id, 6, '0', STR_PAD_LEFT) }}
                                     </button>
                                 </td>
-                                <td class="px-3 py-3 text-gray-700">
+                                <td class="px-3 py-1.5 text-gray-700">
                                     {{ $ca->employee?->last_name ?? '—' }}, {{ $ca->employee?->first_name ?? '—' }}
                                 </td>
-                                <td class="px-3 py-3 text-gray-700 max-w-xs truncate">
-                                    {{ Str::limit($ca->purpose, 50) }}
+                                <td class="px-3 py-1.5 text-gray-700 max-w-xs truncate">
+                                    {{ Str::limit($ca->purpose, 120) }}
                                 </td>
-                                <td class="px-3 py-3 text-right tabular-nums text-gray-700">
+                                <td class="px-3 py-1.5 text-right tabular-nums text-gray-700">
                                     {{ number_format($ca->amount, 2) }}
                                 </td>
-                                <td class="px-3 py-3 text-right tabular-nums text-gray-700">
+                                <td class="px-3 py-1.5 text-right tabular-nums text-gray-700">
                                     {{ number_format($ca->disbursed_amount, 2) }}
                                 </td>
-                                <td class="px-3 py-3 text-right tabular-nums text-gray-700">
+                                <td class="px-3 py-1.5 text-right tabular-nums text-gray-700">
                                     {{ number_format($ca->liquidated_amount, 2) }}
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     <span
                                         class="inline-flex rounded-full {{ $ca->statusBadgeClass() }} px-2 py-0.5 text-[10px] font-medium">
                                         {{ $ca->statusLabel() }}
                                     </span>
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     <div class="flex items-center justify-end gap-1">
                                         <!-- Edit Button -->
                                         @if (in_array($ca->approval_status, ['0', '4']))

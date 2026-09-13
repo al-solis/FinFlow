@@ -122,7 +122,7 @@
                             <tr class="hover:bg-gray-50">
                                 <!-- RFD Number / Drawer Trigger -->
                                 <td
-                                    class="px-6 py-3 font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors duration-200">
+                                    class="px-6 py-1.5 font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors duration-200">
                                     <button type="button" data-drawer-target="drawer-rfd-{{ $rfd->id }}"
                                         data-drawer-show="drawer-rfd-{{ $rfd->id }}" data-drawer-placement="right"
                                         aria-controls="drawer-rfd-{{ $rfd->id }}"
@@ -132,23 +132,23 @@
                                 </td>
 
                                 <!-- Vendors -->
-                                <td class="px-3 py-3 text-gray-700">
+                                <td class="px-3 py-1.5 text-gray-700">
                                     {{ $rfd->vendorSummary() }}
                                 </td>
 
                                 <!-- Request Date -->
-                                <td class="px-3 py-3 text-gray-500">
+                                <td class="px-3 py-1.5 text-gray-500">
                                     {{ $rfd->request_date?->format('M d, Y') }}
                                 </td>
 
                                 <!-- Total -->
-                                <td class="px-3 py-3 text-right tabular-nums text-gray-700">
+                                <td class="px-3 py-1.5 text-right tabular-nums text-gray-700">
                                     {{ $rfd->currency->symbol ?? '' }}
                                     {{ number_format($rfd->total_due, 2) }}
                                 </td>
 
                                 <!-- Status -->
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     <span
                                         class="inline-flex rounded-full {{ $rfd->statusBadgeClass() }} px-2 py-0.5 text-[10px] font-medium">
                                         {{ $rfd->statusLabel() }}
@@ -156,7 +156,7 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     @if (in_array($rfd->approval_status, ['draft', 'returned', '0', '4']))
                                         <a href="{{ route('ap.rfd.edit', $rfd) }}" title="Edit RFD"
                                             class="text-gray-500 hover:text-blue-600 transition-colors">

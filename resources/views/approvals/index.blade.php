@@ -100,37 +100,37 @@
                                 $purpose = $tx->getPurpose();
                             @endphp
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-3 font-medium text-blue-600">
+                                <td class="px-6 py-1.5 font-medium text-blue-600">
                                     <button type="button" data-drawer-target="drawer-tx-{{ $tx->id }}"
                                         data-drawer-show="drawer-tx-{{ $tx->id }}" data-drawer-placement="right"
                                         class="text-blue-600 hover:text-blue-800 hover:underline transition-colors">
                                         {{ $reference }}
                                     </button>
                                 </td>
-                                <td class="px-3 py-3">
+                                <td class="px-3 py-1.5">
                                     <span class="rounded-full {{ $moduleBadge }} px-2.5 py-1 text-xs font-medium">
                                         {{ $moduleLabel }}
                                     </span>
                                 </td>
-                                <td class="px-3 py-3">
+                                <td class="px-3 py-1.5">
                                     <div class="font-medium text-gray-900">{{ $requestorName }}</div>
-                                    <div class="text-gray-400">{{ $requestorEmail }}</div>
+                                    <div class="text-gray-400 text-[10px]">{{ $requestorEmail }}</div>
                                 </td>
-                                <td class="px-3 py-3 text-gray-700">
+                                <td class="px-3 py-1.5 text-gray-700">
                                     {{ $purpose }}
                                 </td>
-                                <td class="px-3 py-3 text-right tabular-nums font-medium">
+                                <td class="px-3 py-1.5 text-right tabular-nums font-medium">
                                     {{ $currency }}{{ number_format($amount, 2) }}
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-1.5 text-center">
                                     <span
-                                        class="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-700">
+                                        class="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-[10px] font-medium text-yellow-700">
                                         Pending
                                     </span>
                                 </td>
-                                <td class="px-3 py-3 text-right">
+                                <td class="px-3 py-2 text-right align-middle">
                                     <a href="{{ $tx->reviewUrl() }}"
-                                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700">
+                                        class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors duration-150 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1">
                                         Review
                                     </a>
                                 </td>

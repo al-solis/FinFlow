@@ -86,7 +86,15 @@ trait AuthorizesAccessRights
 
     protected function ownsModel($model, string $userIdField = 'created_by'): bool
     {
-        return $this->auth()->ownsModel($model, $userIdField);
+        // dd([
+        //     'model_class' => get_class($model),
+        //     'model_id' => $model->id ?? null,
+        //     'user_field' => $userIdField,
+        //     'model_user_id' => $model->{$userIdField} ?? null,
+        //     'auth_user_id' => auth()->id(),
+        //     'auth_user' => auth()->user(),
+        // ]);
+        return (int) $model->{$userIdField} === (int) auth()->id();
     }
 
     // ==================== ADMIN CHECK ====================
