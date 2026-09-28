@@ -286,7 +286,7 @@
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500">GL Account</label>
                                         <p class="text-sm font-medium text-gray-900">
-                                            {{ $bankAccount->chartOfAccount->getFormattedAccountCodeAttribute() ?? '—' }}
+                                            {{ $bankAccount->chartOfAccount?->getFormattedAccountCodeAttribute() ?? '—' }}
                                         </p>
                                     </div>
                                     <div>
