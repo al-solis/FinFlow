@@ -86,4 +86,27 @@ class User extends Authenticatable
     {
         return $this->belongsTo(vendor::class, 'vendor_code');
     }
+
+    public function accessRights()
+    {
+        return $this->hasMany(access_right::class, 'role_id', 'role_id');
+    }
+
+    /**
+     * @param string   $subModuleKey  sub_modules.id of the page being accessed
+     * @param string $action      create | read | update | delete
+     */
+    public function canAccess(string $subModuleKey, string $action = 'read'): bool
+    {
+        if (!in_array($action, ['create', 'read', 'update', 'delete'], true)) {
+            return false;
+        }
+
+        $this->loadMissing('accessRights.subModule');
+
+        return $this->accessRights->contains(
+            fn($r) => $r->subModule?->route_name === $subModuleKey && $r->{"can_{$action}"}
+        );
+    }
+
 }

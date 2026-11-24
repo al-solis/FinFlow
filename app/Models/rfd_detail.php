@@ -62,18 +62,25 @@ class rfd_detail extends Model
         return $this->belongsTo(chart_of_account::class, 'gl_account_id');
     }
 
+    public function item()
+    {
+        return $this->belongsTo(item::class, 'item_id');
+    }
+
     /**
      * Recompute taxable/tax/total for this line from its tax rows.
      * Call after syncing taxes() so header totals stay in sync.
      */
-    public function recalcTotals(): void
+    public function recalcTotals(int $taxOption = 2): void
     {
-        $taxable = ($this->quantity * $this->unit_price) - $this->discount_amount;
-        $tax = $this->taxes()->sum('tax_amount');
+        $gross = ($this->quantity * $this->unit_price) - $this->discount_amount;
 
-        $this->taxable_amount = $taxable;
+        $tax = (float) $this->taxes()->sum('tax_amount');
+
+        $this->taxable_amount = $gross;  // keep as gross
         $this->tax_amount = $tax;
-        $this->total_amount = $taxable + $tax;
+        $this->total_amount = ($taxOption === 1) ? $gross : ($gross + $tax);
+
         $this->save();
     }
 }

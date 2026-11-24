@@ -2,6 +2,11 @@
 
 namespace App\Services;
 
+use RuntimeException;
+use App\Notifications\ApprovalStepNotification;
+use App\Services\Concerns\PostsAccountsReceivable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use App\Models\approval_workflow;
 use App\Models\approval_transaction;
 use App\Models\approval_transaction_history;
@@ -9,17 +14,19 @@ use App\Models\CashAdvance;
 use App\Models\CashAdvanceLiquidation;
 use App\Models\CashAdvanceRefund;
 use App\Models\rfd_header;
-use App\Notifications\ApprovalStepNotification;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use App\Models\gl_journal;
-use RuntimeException;
+use App\Models\sales_invoice;
+use App\Models\collection;
+use App\Models\credit_memo;
+use App\Models\debit_memo;
 
 class ApprovalWorkflowService
 {
-    public function __construct(protected AccountingService $accounting)
-    {
+    use PostsAccountsReceivable;
+    public function __construct(
+        protected AccountingService $accounting,
+    ) {
     }
 
     /**
@@ -57,7 +64,7 @@ class ApprovalWorkflowService
 
             $approvable->forceFill([
                 'approval_status' => '1',
-                'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '1',
+                'status' => $this->statusFor($approvable, '1'),
             ])->save();
 
             $this->notifyStepApprovers($tx, $firstStep);
@@ -98,7 +105,7 @@ class ApprovalWorkflowService
 
                 $approvable->forceFill([
                     'approval_status' => '2',
-                    'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '2',
+                    'status' => $this->statusFor($approvable, '2'),
                     'approved_by' => $actorId,
                 ])->save();
 
@@ -123,7 +130,7 @@ class ApprovalWorkflowService
                 $approvable = $tx->approvable;
                 $approvable->forceFill([
                     'approval_status' => '2',
-                    'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '2',
+                    'status' => $this->statusFor($approvable, '2'),
                     'approved_by' => $actorId,
                 ])->save();
 
@@ -168,7 +175,7 @@ class ApprovalWorkflowService
             $approvable = $tx->approvable;
             $approvable->forceFill([
                 'approval_status' => '4',
-                'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '0',
+                'status' => $this->statusFor($approvable, '0'),
             ])->save();
 
             $requesterId = $this->getRequesterId($approvable);
@@ -204,11 +211,35 @@ class ApprovalWorkflowService
             $approvable = $tx->approvable;
             $approvable->forceFill([
                 'approval_status' => '3',
-                'status' => $approvable->getMorphClass() === 'App\Models\gl_journal' ? 'draft' : '3',
+                'status' => $this->statusFor($approvable, '3'),
             ])->save();
 
             return $tx;
         });
+    }
+
+    /**
+     * Value for the approvable's own `status` column while it moves through approval.
+     * gl_journal and collection use named statuses ('draft' -> 'posted'/'voided'), not the
+     * numeric ones, so the workflow must not write '1'/'2'/'3' into them: the collection's
+     * `status` is what the posted/voided checks and the list filters read.
+     */
+    protected function statusFor(Model $approvable, string $numeric): string
+    {
+        /**
+         * Value for the approvable's own `status` column while it moves through approval.
+         *
+         * gl_journal and collection use named statuses ('draft' -> 'posted'/'voided');
+         * credit and debit memos use the numeric map (0=Draft, 1=Submitted, 2=Approved,
+         * 3=Rejected, 4=Returned) and must receive the numeric value unchanged.
+         */
+        // These two share named statuses; the numeric memo map does not apply.
+        if ($approvable instanceof gl_journal || $approvable instanceof collection) {
+            return 'draft';
+        }
+
+        // Credit and debit memos use the numeric map (0..4) — return it untouched.
+        return $numeric;
     }
 
     /**
@@ -221,6 +252,10 @@ class ApprovalWorkflowService
             $approvable instanceof CashAdvance => $approvable->employee_id ?? $approvable->created_by,
             $approvable instanceof CashAdvanceLiquidation => $approvable->employee_id ?? $approvable->created_by,
             $approvable instanceof CashAdvanceRefund => $approvable->employee_id ?? $approvable->created_by,
+            $approvable instanceof sales_invoice => $approvable->created_by,
+            $approvable instanceof collection => $approvable->created_by,
+            $approvable instanceof credit_memo => $approvable->created_by,
+            $approvable instanceof debit_memo => $approvable->created_by,
             default => $approvable->created_by ?? null,
         };
     }
@@ -236,6 +271,10 @@ class ApprovalWorkflowService
             $approvable instanceof CashAdvanceLiquidation => $this->accounting->postLiquidationApproval($approvable->fresh(), $actorId),
             $approvable instanceof CashAdvanceRefund => $this->handleRefundReimbursementApproval($approvable, $actorId),
             $approvable instanceof gl_journal => $this->handleJournalApproval($approvable, $actorId),
+            $approvable instanceof sales_invoice => $this->accounting->postSalesInvoiceApproval($approvable->fresh(), $actorId),
+            $approvable instanceof collection => $this->postCollectionOnApproval($approvable->fresh(), $actorId),
+            $approvable instanceof credit_memo => $this->postCreditMemoOnApproval($approvable->fresh(), $actorId),
+            $approvable instanceof debit_memo => $this->postDebitMemoOnApproval($approvable->fresh(), $actorId),
             default => null,
         };
     }
@@ -262,6 +301,27 @@ class ApprovalWorkflowService
         } elseif ($approvable->type === 'reimbursement') {
             $this->accounting->postReimbursementApproval($approvable->fresh(), $actorId);
         }
+    }
+
+    protected function postCollectionOnApproval(collection $collection, int $actorId): void
+    {
+        $applications = $collection->applications->map(fn($a) => [
+            'sales_invoice_id' => $a->sales_invoice_id,
+            'amount_applied' => (float) $a->amount_applied,
+            'cwt_applied' => (float) $a->cwt_applied,
+        ])->all();
+
+        $this->accounting->postCollection($collection, $applications, $actorId);
+    }
+
+    protected function postCreditMemoOnApproval(credit_memo $memo, int $actorId): void
+    {
+        $this->accounting->postCreditMemoApproval($memo, $actorId);
+    }
+
+    protected function postDebitMemoOnApproval(debit_memo $memo, int $actorId): void
+    {
+        $this->accounting->postDebitMemoApproval($memo, $actorId);
     }
 
     /**

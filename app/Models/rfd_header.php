@@ -25,6 +25,7 @@ class rfd_header extends Model
         'payment_method_id',
         'currency_id',
         'exchange_rate',
+        'tax_option',
         'total_amount',
         'total_tax',
         'total_discount',

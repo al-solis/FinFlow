@@ -38,7 +38,7 @@
             </div>
 
             <!-- Read-only header summary (vendor is per-line now, shown in the table below) -->
-            <div class="px-8 py-6 border-b border-gray-200 grid grid-cols-2 gap-3 md:grid-cols-4 text-xs">
+            <div class="px-8 py-6 border-b border-gray-200 grid grid-cols-2 gap-3 md:grid-cols-5 text-xs">
                 <div>
                     <div class="text-gray-500">Request Date</div>
                     <div class="font-medium text-gray-800">{{ $rfd->request_date?->format('M d, Y') }}</div>
@@ -54,6 +54,23 @@
                 <div>
                     <div class="text-gray-500">Currency</div>
                     <div class="font-medium text-gray-800">{{ $rfd->currency->code ?? '—' }}</div>
+                </div>
+                <div>
+                    <div class="text-gray-500">Tax Option</div>
+                    <div class="font-medium text-gray-800">
+                        @switch((int) $rfd->tax_option)
+                            @case(1)
+                                Inclusive
+                            @break
+
+                            @case(2)
+                                Exclusive
+                            @break
+
+                            @default
+                                No Tax
+                        @endswitch
+                    </div>
                 </div>
                 @if ($rfd->remarks)
                     <div class="col-span-2 md:col-span-4">
@@ -115,6 +132,7 @@
                                 <tr>
                                     <th class="px-3 py-2 text-left">#</th>
                                     <th class="px-3 py-2 text-left">Vendor</th>
+                                    <th class="px-3 py-2 text-left">Item</th>
                                     <th class="px-3 py-2 text-left">Description</th>
                                     <th class="px-3 py-2 text-left">GL Account</th>
                                     <th class="px-3 py-2 text-right">Qty</th>
@@ -131,7 +149,7 @@
 
                                         <!-- Vendor is set at submission time; not editable during approval -->
                                         <td class="px-3 py-2 text-gray-800">{{ $detail->vendor->name ?? '—' }}</td>
-
+                                        <td class="px-3 py-2 text-gray-800">{{ $detail->item->code ?? '—' }}</td>
                                         <td class="px-3 py-2 text-gray-800">{{ $detail->description }}</td>
 
                                         <!-- GL account: editable only if step allows -->
@@ -229,7 +247,17 @@
                             </tbody>
                             <tfoot class="bg-gray-50 font-medium text-gray-700">
                                 <tr>
-                                    <td colspan="8" class="px-3 py-2 text-right text-sm">Total Due</td>
+                                    <td colspan="9" class="px-3 py-2 text-right text-sm">Sub Total</td>
+                                    <td class="px-3 py-2 text-right tabular-nums text-sm" x-text="formatNumber(subtotal)">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="9" class="px-3 py-2 text-right text-sm">Tax Total</td>
+                                    <td class="px-3 py-2 text-right tabular-nums text-sm" x-text="formatNumber(taxTotal)">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="9" class="px-3 py-2 text-right text-sm">Total Due</td>
                                     <td class="px-3 py-2 text-right tabular-nums text-sm" x-text="formatNumber(totalDue)">
                                     </td>
                                 </tr>
@@ -266,21 +294,15 @@
     </div>
 
     <script>
-        // System settings from PHP (passed from controller via trait)
         const SYSTEM_SETTINGS = @json($systemSettings);
 
-        // Get tax rate/fixed metadata from the rendered <option data-rate data-fixed> attributes
+        const TAX_MAP = @json(
+            $taxes->mapWithKeys(fn($t) => [
+                    (string) $t->id => ['rate' => (float) $t->rate, 'fixed' => (float) ($t->fixed_amount ?? 0)],
+                ]));
+
         function getTaxRate(taxId) {
-            const allOptions = document.querySelectorAll('select[name*="tax_ids"] option[value="' + taxId + '"]');
-            for (const opt of allOptions) {
-                if (opt.value === taxId) {
-                    return {
-                        rate: parseFloat(opt.dataset.rate || 0),
-                        fixed: parseFloat(opt.dataset.fixed || 0),
-                    };
-                }
-            }
-            return {
+            return TAX_MAP[String(taxId)] ?? {
                 rate: 0,
                 fixed: 0
             };
@@ -288,16 +310,14 @@
 
         // Currency format helper using system settings
         function formatCurrency(amount) {
-            if (amount === undefined || amount === null || isNaN(amount)) {
-                return '0.00';
-            }
+            if (amount === undefined || amount === null || isNaN(amount)) return '0.00';
 
             const decimal = SYSTEM_SETTINGS.decimal_places || 2;
             const thousands = SYSTEM_SETTINGS.thousands_separator || ',';
             const decimalPoint = SYSTEM_SETTINGS.decimal_separator || '.';
 
-            let formatted = Number(amount).toFixed(decimal);
-            let parts = formatted.split('.');
+            const formatted = Number(amount).toFixed(decimal);
+            const parts = formatted.split('.');
             let integerPart = parts[0];
             const decimalPart = parts[1] || '';
 
@@ -308,6 +328,7 @@
 
         function rfdApproval() {
             return {
+                taxOption: @js((string) ($rfd->tax_option ?? 0)),
                 lines: [],
 
                 init() {
@@ -327,9 +348,9 @@
 
                     this.lines = serverLines.map(l => ({
                         id: l.id,
-                        quantity: parseFloat(l.quantity ?? 0),
-                        unit_price: parseFloat(l.unit_price ?? 0),
-                        discount_amount: parseFloat(l.discount_amount ?? 0),
+                        quantity: Number(l.quantity) || 0,
+                        unit_price: Number(l.unit_price) || 0,
+                        discount_amount: Number(l.discount_amount) || 0,
                         tax_ids: l.tax_ids ?? [],
                         taxable_amount: 0,
                         tax_amount: 0,
@@ -345,26 +366,48 @@
                     const quantity = Number(line.quantity) || 0;
                     const unitPrice = Number(line.unit_price) || 0;
                     const discount = Number(line.discount_amount) || 0;
-                    const taxable = (quantity * unitPrice) - discount;
+                    const gross = (quantity * unitPrice) - discount;
 
+                    const mode = parseInt(this.taxOption || 0); // '0' | '1' | '2'
+                    // alert('mode: ' + mode + ', gross: ' + gross);
                     let tax = 0;
-                    (line.tax_ids || []).forEach(taxId => {
-                        if (!taxId) return;
-                        const meta = getTaxRate(taxId);
-                        if (meta.fixed > 0) {
-                            tax += meta.fixed;
-                        } else if (meta.rate > 0) {
-                            tax += taxable * (meta.rate / 100);
-                        }
-                    });
+                    if (mode !== 0 && Array.isArray(line.tax_ids) && line.tax_ids.length > 0) {
+                        line.tax_ids.forEach(taxId => {
+                            if (!taxId) return;
+                            const meta = getTaxRate(taxId);
 
-                    line.taxable_amount = taxable;
+                            if (!meta) return;
+
+                            if (meta.fixed > 0) {
+                                tax += meta.fixed;
+                            } else if (meta.rate > 0) {
+                                if (mode === 1) {
+                                    // Inclusive: tax already inside gross
+                                    tax += gross * (meta.rate / 100) / (1 + meta.rate / 100);
+                                } else {
+                                    // Exclusive: tax added on top
+                                    tax += gross * (meta.rate / 100);
+                                }
+                            }
+                        });
+                    }
+
+                    // Always set line totals, regardless of mode
+                    line.taxable_amount = gross;
                     line.tax_amount = tax;
-                    line.total_amount = taxable + tax;
+                    line.total_amount = (mode === 1) ? gross : (gross + tax);
                 },
 
                 formatNumber(value) {
                     return formatCurrency(value);
+                },
+
+                get subtotal() {
+                    return this.lines.reduce((sum, l) => sum + (l.taxable_amount || 0), 0);
+                },
+
+                get taxTotal() {
+                    return this.lines.reduce((sum, l) => sum + (l.tax_amount || 0), 0);
                 },
 
                 get totalDue() {
@@ -378,10 +421,8 @@
                         alert('Remarks are required to return or reject a request.');
                         return;
                     }
-                    const original = form.action;
                     form.action = url;
                     form.submit();
-                    form.action = original;
                 },
             };
         }

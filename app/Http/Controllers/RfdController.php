@@ -24,6 +24,7 @@ use App\Models\tax_master;
 use App\Models\chart_of_account;
 use App\Models\approval_transaction;
 use App\Services\ApprovalWorkflowService;
+use App\Models\item;
 
 
 class RfdController extends Controller
@@ -95,6 +96,7 @@ class RfdController extends Controller
                 '_key' => (string) $d->id,
                 'id' => $d->id,
                 'vendor_id' => $d->vendor_id,
+                'item_id' => $d->item_id,
                 'description' => $d->description,
                 'gl_account_id' => $d->gl_account_id,
                 'reference' => $d->reference,
@@ -121,8 +123,9 @@ class RfdController extends Controller
         $this->authorizeCreate(Modules::AP, Modules::AP_RFD);
 
         $data = $this->validateHeader($request);
+        $submit = $request->boolean('submit_for_approval');
 
-        DB::transaction(function () use ($request, $data) {
+        $rfd = DB::transaction(function () use ($request, $data, $submit) {
             $rfd = rfd_header::create([
                 ...$data,
                 'organization_id' => $this->getOrganizationId(),
@@ -139,13 +142,27 @@ class RfdController extends Controller
             );
             $this->recalcHeaderTotals($rfd);
 
-            if ($request->boolean('submit_for_approval')) {
-                $this->approvals->submit($rfd->fresh(), 'rfd', (float) $rfd->total_amount, Auth::id());
-                $rfd->update(['submitted_at' => now(), 'submitted_by' => Auth::id()]);
-            }
+            // Do NOT submit inside — just create the draft.
+            return $rfd;
         });
 
-        return redirect()->route('ap.rfd')->with('success', 'Request for disbursement saved.');
+        if ($submit) {
+            if ((float) $rfd->total_due <= 0) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Cannot submit for approval: total due must be greater than zero.');
+            }
+
+            $this->approvals->submit($rfd->fresh(), 'rfd', (float) $rfd->total_due, Auth::id());
+            $rfd->update(['submitted_at' => now(), 'submitted_by' => Auth::id()]);
+        }
+
+        return redirect()->route('ap.rfd')->with(
+            'success',
+            $submit
+            ? 'Request submitted for approval.'
+            : 'Request for disbursement saved as draft.'
+        );
     }
 
     public function update(Request $request, rfd_header $rfd)
@@ -159,6 +176,7 @@ class RfdController extends Controller
         $this->authorizeDraftEdit($rfd);
 
         $data = $this->validateHeader($request);
+        $submit = $request->boolean('submit_for_approval');
 
         DB::transaction(function () use ($request, $rfd, $data) {
             $rfd->update([...$data, 'updated_by' => Auth::id()]);
@@ -175,14 +193,36 @@ class RfdController extends Controller
                 $this->buildAttachmentsData($request->input('attachment_descriptions', []))
             );
             $this->recalcHeaderTotals($rfd);
-
-            if ($request->boolean('submit_for_approval')) {
-                $this->approvals->submit($rfd->fresh(), 'rfd', (float) $rfd->total_amount, Auth::id());
-                $rfd->update(['submitted_at' => now(), 'submitted_by' => Auth::id()]);
-            }
         });
 
-        return redirect()->route('ap.rfd')->with('success', 'Request for disbursement updated.');
+        if ($submit) {
+            if ((float) $rfd->fresh()->total_due <= 0) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Cannot submit for approval: total due must be greater than zero.');
+            }
+
+            $this->approvals->submit($rfd->fresh(), 'rfd', (float) $rfd->total_due, Auth::id());
+            $rfd->update(['submitted_at' => now(), 'submitted_by' => Auth::id()]);
+        }
+
+        return redirect()->route('ap.rfd')->with(
+            'success',
+            $submit
+            ? 'Request submitted for approval.'
+            : 'Request for disbursement saved as draft.'
+        );
+    }
+
+    protected function authorizeApprover(approval_transaction $transaction): void
+    {
+        abort_unless($transaction->approvable_type === rfd_header::class, 404);
+
+        abort_unless(
+            $transaction->isPendingFor(Auth::user()),
+            403,
+            'You are not the current approver for this request.'
+        );
     }
 
     protected function buildAttachmentsData(array $descriptions): array
@@ -234,6 +274,8 @@ class RfdController extends Controller
 
     public function showApproval(approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -261,6 +303,8 @@ class RfdController extends Controller
 
     public function approve(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -277,6 +321,7 @@ class RfdController extends Controller
                 if ($step->can_edit_amount && isset($lineData['unit_price'])) {
                     $detail->unit_price = $lineData['unit_price'];
                     $detail->discount_amount = $lineData['discount_amount'] ?? $detail->discount_amount;
+                    $detail->taxable_amount = $detail->quantity * $lineData['unit_price'] - $detail->discount_amount;
                 }
 
                 $detail->updated_by = Auth::id();
@@ -285,11 +330,13 @@ class RfdController extends Controller
                 if ($step->can_edit_tax) {
                     $detail->taxes()->delete();
                     foreach ($lineData['tax_ids'] ?? [] as $taxId) {
-                        $this->applyTaxToLine($detail, $taxId);
+                        if ($taxId === '' || $taxId === null)
+                            continue;
+                        $this->applyTaxToLine($detail, (int) $taxId, (int) $rfd->tax_option);
                     }
                 }
 
-                $detail->recalcTotals();
+                $detail->recalcTotals($rfd->tax_option ?? 0);
             }
 
             $this->recalcHeaderTotals($rfd->fresh());
@@ -302,6 +349,8 @@ class RfdController extends Controller
 
     public function returnToRequester(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
+
         $request->validate(['remarks' => 'required|string|max:1000']);
         $this->approvals->returnToRequester($transaction, Auth::id(), $request->input('remarks'));
 
@@ -310,6 +359,8 @@ class RfdController extends Controller
 
     public function reject(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
+
         $request->validate(['remarks' => 'required|string|max:1000']);
         $this->approvals->reject($transaction, Auth::id(), $request->input('remarks'));
 
@@ -336,9 +387,11 @@ class RfdController extends Controller
             'payment_method_id' => 'nullable|exists:payment_methods,id',
             'currency_id' => 'required|exists:currencies,id',
             'exchange_rate' => 'nullable|numeric|min:0',
+            'tax_option' => 'required|in:0,1,2',
             'remarks' => 'nullable|string|max:2000',
             'lines' => 'required|array|min:1',
             'lines.*.vendor_id' => 'required|exists:vendors,id',
+            'lines.*.item_id' => 'nullable|exists:items,id',
             'lines.*.description' => 'required|string|max:255',
             'lines.*.quantity' => 'required|numeric|min:0.01',
             'lines.*.unit_price' => 'required|numeric|min:0',
@@ -354,11 +407,14 @@ class RfdController extends Controller
 
     protected function syncLines(rfd_header $rfd, array $lines): void
     {
+        $taxOption = (int) ($rfd->tax_option ?? 0);
+
         foreach (array_values($lines) as $i => $line) {
             $quantity = (float) $line['quantity'];
             $unitPrice = (float) $line['unit_price'];
             $discount = (float) ($line['discount_amount'] ?? 0);
             $taxableAmount = ($quantity * $unitPrice) - $discount;
+            $gross = ($quantity * $unitPrice) - $discount;
 
             $detail = rfd_detail::create([
                 'rfd_header_id' => $rfd->id,
@@ -377,14 +433,16 @@ class RfdController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-            foreach ($line['tax_ids'] ?? [] as $taxId) {
-                if ($taxId === '' || $taxId === null) {
-                    continue;
+            if ($taxOption !== 0) {
+                foreach ($line['tax_ids'] ?? [] as $taxId) {
+                    if ($taxId === '' || $taxId === null) {
+                        continue;
+                    }
+                    $this->applyTaxToLine($detail, (int) $taxId, $taxOption);
                 }
-                $this->applyTaxToLine($detail, (int) $taxId);
             }
 
-            $detail->recalcTotals();
+            $detail->recalcTotals($taxOption);
         }
     }
 
@@ -464,23 +522,48 @@ class RfdController extends Controller
         $detail->save();
     }
 
-    protected function applyTaxToLine(rfd_detail $detail, int $taxId): void
+    protected function applyTaxToLine(rfd_detail $detail, int $taxId, int $taxOption = 2): void
     {
         $tax = tax_master::where('organization_id', $this->getOrganizationId())->find($taxId);
         if (!$tax) {
             return;
         }
 
-        $taxableAmount = $detail->taxable_amount;
-        $taxAmount = $tax->fixed_amount > 0
-            ? (float) $tax->fixed_amount
-            : round($taxableAmount * ((float) $tax->rate / 100), 2);
+        // $taxableAmount = $detail->taxable_amount;
+        // $taxAmount = $tax->fixed_amount > 0
+        //     ? (float) $tax->fixed_amount
+        //     : round($taxableAmount * ((float) $tax->rate / 100), 2);
+
+        // rfd_detail_tax::create([
+        //     'rfd_detail_id' => $detail->id,
+        //     'line_no' => $detail->line_no,
+        //     'tax_id' => $tax->id,
+        //     'taxable_amount' => $taxableAmount,
+        //     'tax_amount' => $taxAmount,
+        //     'created_by' => Auth::id(),
+        // ]);
+
+        // For INCLUSIVE tax, the taxable amount already contains the tax.
+        // Compute the extracted tax from the line's gross (quantity*price - discount).
+        if ($taxOption === 1) {
+            if ($tax->fixed_amount > 0) {
+                $taxAmount = (float) $tax->fixed_amount;
+            } else {
+                $rate = (float) $tax->rate / 100;
+                // tax = gross * rate / (1 + rate)
+                $taxAmount = round($detail->taxable_amount * $rate / (1 + $rate), 2);
+            }
+        } else {
+            $taxAmount = $tax->fixed_amount > 0
+                ? (float) $tax->fixed_amount
+                : round($detail->taxable_amount * ((float) $tax->rate / 100), 2);
+        }
 
         rfd_detail_tax::create([
             'rfd_detail_id' => $detail->id,
             'line_no' => $detail->line_no,
             'tax_id' => $tax->id,
-            'taxable_amount' => $taxableAmount,
+            'taxable_amount' => $detail->taxable_amount,
             'tax_amount' => $taxAmount,
             'created_by' => Auth::id(),
         ]);
@@ -504,6 +587,7 @@ class RfdController extends Controller
             '_key' => (string) str()->uuid(),
             'id' => null,
             'vendor_id' => '',
+            'item_id' => '',
             'description' => '',
             'gl_account_id' => '',
             'reference' => '',
@@ -523,6 +607,10 @@ class RfdController extends Controller
                     ->where('is_active', 1))
                 ->where('organization_id', $this->getOrganizationId())->where('is_active', 1)
                 ->orderBy('name')->get(),
+            'items' => item::where('organization_id', $this->getOrganizationId())
+                ->where('status', 1)
+                ->orderBy('name')
+                ->get(['id', 'code', 'name', 'description', 'default_unit_price']),
             'terms' => term::where('organization_id', $this->getOrganizationId())->where('status', 1)->orderBy('name')->get(),
             'paymentMethods' => payment_method::where('organization_id', $this->getOrganizationId())->where('status', 1)->orderBy('name')->get(),
             'currencies' => currency::where('status', 1)->orderBy('code')->get(),

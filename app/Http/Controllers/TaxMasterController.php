@@ -101,6 +101,7 @@ class TaxMasterController extends Controller
             'fixed_amount' => 'nullable|numeric|min:0',
             'gl_account_id' => 'nullable|exists:chart_of_accounts,id',
             'recoverable' => 'nullable|boolean',
+            'direction' => 'required|in:output,input,both',
             'priority' => 'required|integer|min:1',
             'effective_from' => 'required|date',
             'effective_to' => 'nullable|date|after_or_equal:effective_from',
@@ -117,6 +118,7 @@ class TaxMasterController extends Controller
             'fixed_amount' => $request->fixed_amount,
             'gl_account_id' => $request->gl_account_id ?? null,
             'recoverable' => $request->recoverable ? true : false,
+            'direction' => $request->direction,
             'priority' => $request->priority,
             'effective_from' => $request->effective_from,
             'effective_to' => $request->effective_to,
@@ -133,6 +135,10 @@ class TaxMasterController extends Controller
         $settings = SystemSettings::get();
         $taxMaster = tax_master::findOrFail($id);
 
+        if ($taxMaster->is_system) {
+            return back()->with('error', "Tax {$taxMaster->code} is a system tax and cannot be edited.");
+        }
+
         $request->validate([
             'edit_code' => [
                 'required',
@@ -148,6 +154,7 @@ class TaxMasterController extends Controller
             'edit_fixed_amount' => 'nullable|numeric|min:0',
             'edit_gl_account_id' => 'nullable|exists:chart_of_accounts,id',
             'edit_recoverable' => 'nullable|boolean',
+            'edit_direction' => 'required|in:output,input,both',
             'edit_priority' => 'required|integer|min:1',
             'edit_effective_from' => 'required|date',
             'edit_effective_to' => 'nullable|date|after_or_equal:effective_from',
@@ -163,6 +170,7 @@ class TaxMasterController extends Controller
             'fixed_amount' => $request->edit_fixed_amount,
             'gl_account_id' => $request->edit_gl_account_id ?? null,
             'recoverable' => $request->edit_recoverable ? true : false,
+            'direction' => $request->edit_direction,
             'priority' => $request->edit_priority,
             'effective_from' => $request->edit_effective_from,
             'effective_to' => $request->edit_effective_to,

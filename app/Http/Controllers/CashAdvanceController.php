@@ -54,6 +54,14 @@ class CashAdvanceController extends Controller
         return $settings ? $settings->id : null;
     }
 
+    protected function authorizeApprover(approval_transaction $transaction): void
+    {
+        $user = Auth::user();
+        if (!$transaction->isPendingFor($user)) {
+            abort(403, 'You are not authorized to approve this transaction.');
+        }
+    }
+
     // ==================== CASH ADVANCE ====================
 
     public function index(Request $request)
@@ -643,6 +651,9 @@ class CashAdvanceController extends Controller
 
     public function showLiquidationApproval(CashAdvanceLiquidation $liquidation, approval_transaction $transaction)
     {
+        $this->authorizeRead(Modules::CM, Modules::CM_LIQ);
+        $this->authorizeApprover($transaction);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -684,6 +695,7 @@ class CashAdvanceController extends Controller
     public function approveLiquidation(Request $request, approval_transaction $transaction)
     {
         $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+        $this->authorizeApprover($transaction);
 
         $step = $transaction->currentStep();
         abort_unless($step, 404);
@@ -762,6 +774,7 @@ class CashAdvanceController extends Controller
     public function returnLiquidation(Request $request, approval_transaction $transaction)
     {
         $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+        $this->authorizeApprover($transaction);
 
         $request->validate(['remarks' => 'required|string|max:1000']);
         $this->approvals->returnToRequester($transaction, Auth::id(), $request->input('remarks'));
@@ -772,6 +785,7 @@ class CashAdvanceController extends Controller
     public function rejectLiquidation(Request $request, approval_transaction $transaction)
     {
         $this->authorizeUpdate(Modules::CM, Modules::CM_LIQ);
+        $this->authorizeApprover($transaction);
 
         $request->validate(['remarks' => 'required|string|max:1000']);
         $this->approvals->reject($transaction, Auth::id(), $request->input('remarks'));
@@ -966,6 +980,8 @@ class CashAdvanceController extends Controller
 
     public function showRefundApproval(CashAdvanceRefund $refund, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -985,6 +1001,8 @@ class CashAdvanceController extends Controller
     public function returnRefund(Request $request, approval_transaction $transaction)
     {
         $this->authorizeUpdate(Modules::CM, Modules::CM_REF);
+
+        $this->authorizeApprover($transaction);
 
         $request->validate([
             'remarks' => 'required|string|min:1|max:1000'
@@ -1011,6 +1029,7 @@ class CashAdvanceController extends Controller
     public function approveRefund(Request $request, approval_transaction $transaction)
     {
         $this->authorizeUpdate(Modules::CM, Modules::CM_REF);
+        $this->authorizeApprover($transaction);
 
         $step = $transaction->currentStep();
         abort_unless($step, 404);
@@ -1214,6 +1233,8 @@ class CashAdvanceController extends Controller
 
     public function showReimbursementApproval(CashAdvanceRefund $reimbursement, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -1243,6 +1264,7 @@ class CashAdvanceController extends Controller
     public function approveReimbursement(Request $request, approval_transaction $transaction)
     {
         $this->authorizeUpdate(Modules::CM, Modules::CM_REIM);
+        $this->authorizeApprover($transaction);
 
         $step = $transaction->currentStep();
         abort_unless($step, 404);
@@ -1323,6 +1345,7 @@ class CashAdvanceController extends Controller
     public function returnReimbursement(Request $request, approval_transaction $transaction)
     {
         $this->authorizeUpdate(Modules::CM, Modules::CM_REIM);
+        $this->authorizeApprover($transaction);
 
         $request->validate([
             'remarks' => 'required|string|min:1|max:1000'
@@ -1336,6 +1359,7 @@ class CashAdvanceController extends Controller
     public function rejectReimbursement(Request $request, approval_transaction $transaction)
     {
         $this->authorizeUpdate(Modules::CM, Modules::CM_REIM);
+        $this->authorizeApprover($transaction);
 
         $request->validate([
             'remarks' => 'required|string|min:1|max:1000'
@@ -1362,6 +1386,8 @@ class CashAdvanceController extends Controller
 
     public function showApproval(CashAdvance $cashAdvance, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -1383,6 +1409,8 @@ class CashAdvanceController extends Controller
      */
     public function approve(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
+
         $step = $transaction->currentStep();
         abort_unless($step, 404);
 
@@ -1410,6 +1438,7 @@ class CashAdvanceController extends Controller
 
     public function returnToRequester(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
         $request->validate(['remarks' => 'required|string|max:1000']);
         $this->approvals->returnToRequester($transaction, Auth::id(), $request->input('remarks'));
 
@@ -1421,6 +1450,7 @@ class CashAdvanceController extends Controller
      */
     public function reject(Request $request, approval_transaction $transaction)
     {
+        $this->authorizeApprover($transaction);
         $request->validate(['remarks' => 'required|string|max:1000']);
         $this->approvals->reject($transaction, Auth::id(), $request->input('remarks'));
 

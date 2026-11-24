@@ -63,6 +63,30 @@ class PiiMaskingService
                 ],
             ]
         ],
+        'AR' => [
+            'sub_modules' => [
+                'AR_CUST' => [
+                    'fields' => [
+                        'name' => 'full_name',
+                        'legal_name' => 'full_name',
+                        'contact_person' => 'full_name',
+                        'email' => 'email',
+                        'phone' => 'phone',
+                        'mobile' => 'mobile',
+                        'tax_id' => 'tax_id',
+                        'address1' => 'address',
+                        'address2' => 'address',
+                    ]
+                ],
+                'AR_INV' => [
+                    'fields' => [
+                        'bill_to_name' => 'full_name',
+                        'bill_to_tin' => 'tax_id',
+                        'bill_to_address' => 'address',
+                    ]
+                ],
+            ]
+        ],
         'ADMIN' => [
             'sub_modules' => [
                 'ADMIN_USER' => [
@@ -251,7 +275,7 @@ class PiiMaskingService
      */
     protected function hasGlobalWriteAccess(): bool
     {
-        $modules = ['AP', 'ADMIN', 'CM', 'GL', 'BM', 'TAX'];
+        $modules = ['AP', 'AR', 'ADMIN', 'CM', 'GL', 'BM', 'TAX'];
         foreach ($modules as $module) {
             if (
                 $this->authService->canCreate($module) ||

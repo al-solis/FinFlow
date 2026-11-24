@@ -120,16 +120,7 @@
                                             : $subModules->map(fn($sm) => $module->id . '-' . $sm->id)->all();
 
                                         // Define modules that should be disabled
-                                        $disabledModules = [
-                                            'AR',
-                                            'FA',
-                                            'IA',
-                                            'PUR',
-                                            'SALES',
-                                            'BUDGET',
-                                            'COST',
-                                            'MASTER',
-                                        ];
+                                        $disabledModules = ['FA', 'IA', 'PUR', 'SALES', 'BUDGET', 'COST'];
                                         $isDisabled = in_array($module->code, $disabledModules);
                                     @endphp
 

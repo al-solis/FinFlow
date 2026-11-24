@@ -11,6 +11,8 @@ use App\Models\CashAdvance;
 use App\Models\CashAdvanceLiquidation;
 use App\Models\CashAdvanceRefund;
 use App\Models\gl_journal;
+use App\Models\credit_memo;
+use App\Models\debit_memo;
 
 class approval_transaction extends Model
 {
@@ -60,6 +62,10 @@ class approval_transaction extends Model
                 ? route('cm.reimbursement.showApproval', [$this->approvable_id, $this->id])
                 : route('cm.refund.showApproval', [$this->approvable_id, $this->id]),
             gl_journal::class => route('gl.journal.showApproval', [$this->approvable_id, $this->id]),
+            sales_invoice::class => route('ar.invoices.showApproval', [$this->approvable_id, $this->id]),
+            collection::class => route('ar.collections.showApproval', [$this->approvable_id, $this->id]),
+            credit_memo::class => route('ar.credit-memos.showApproval', [$this->approvable_id, $this->id]),
+            debit_memo::class => route('ar.debit-memos.showApproval', [$this->approvable_id, $this->id]),
             default => '#',
         };
     }
@@ -75,6 +81,10 @@ class approval_transaction extends Model
             CashAdvanceLiquidation::class => 'Liquidation',
             gl_journal::class => 'Journal Entry',
             CashAdvanceRefund::class => $this->approvable?->type === 'refund' ? 'Refund' : 'Reimbursement',
+            sales_invoice::class => 'Sales Invoice',
+            collection::class => 'Collection',
+            credit_memo::class => 'Credit Memo',
+            debit_memo::class => 'Debit Memo',
         ];
 
         return $map[$this->approvable_type] ?? 'Unknown';
@@ -96,6 +106,10 @@ class approval_transaction extends Model
             CashAdvance::class => 'bg-purple-50 text-purple-700',
             CashAdvanceLiquidation::class => 'bg-green-50 text-green-700',
             gl_journal::class => 'bg-indigo-50 text-indigo-700',
+            sales_invoice::class => 'bg-yellow-50 text-yellow-700',
+            collection::class => 'bg-emerald-50 text-emerald-700',
+            credit_memo::class => 'bg-rose-50 text-rose-700',
+            debit_memo::class => 'bg-amber-50 text-amber-700',
         ];
 
         return $map[$this->approvable_type] ?? 'bg-gray-50 text-gray-700';
@@ -112,6 +126,10 @@ class approval_transaction extends Model
             CashAdvanceLiquidation::class => 'LIQ',
             CashAdvanceRefund::class => $this->approvable?->type === 'reimbursement' ? 'REIMB' : 'REF',
             gl_journal::class => 'JRN',
+            sales_invoice::class => 'INV',
+            collection::class => 'COL',
+            credit_memo::class => 'CM',
+            debit_memo::class => 'DM',
             default => 'REQ',
         };
 
@@ -135,6 +153,10 @@ class approval_transaction extends Model
             CashAdvanceLiquidation::class => $approvable->employee,
             CashAdvanceRefund::class => $approvable->employee,
             gl_journal::class => $approvable->creator,
+            sales_invoice::class => $approvable->creator,
+            collection::class => $approvable->creator,
+            credit_memo::class => $approvable->creator,
+            debit_memo::class => $approvable->creator,
             default => null,
         };
 
@@ -162,6 +184,10 @@ class approval_transaction extends Model
             CashAdvanceLiquidation::class => $approvable->employee,
             CashAdvanceRefund::class => $approvable->employee,
             gl_journal::class => $approvable->creator,
+            sales_invoice::class => $approvable->creator,
+            collection::class => $approvable->creator,
+            credit_memo::class => $approvable->creator,
+            debit_memo::class => $approvable->creator,
             default => null,
         };
 
@@ -184,6 +210,10 @@ class approval_transaction extends Model
             CashAdvance::class => (float) $approvable->amount,
             CashAdvanceLiquidation::class => (float) $approvable->total_expenses,
             CashAdvanceRefund::class => (float) $approvable->amount,
+            sales_invoice::class => (float) $approvable->total_amount,
+            collection::class => (float) $approvable->amount_received,
+            credit_memo::class => (float) $approvable->total_amount,
+            debit_memo::class => (float) $approvable->total_amount,
             default => 0,
         };
     }
@@ -201,6 +231,10 @@ class approval_transaction extends Model
 
         return match ($this->approvable_type) {
             rfd_header::class => $approvable->currency?->symbol ?? '₱',
+            sales_invoice::class => $approvable->currency?->symbol ?? '₱',
+            collection::class => $approvable->currency?->symbol ?? '₱',
+            credit_memo::class => $approvable->currency?->symbol ?? '₱',
+            debit_memo::class => $approvable->currency?->symbol ?? '₱',
             default => '₱',
         };
     }
@@ -221,6 +255,10 @@ class approval_transaction extends Model
             CashAdvance::class => $approvable->purpose ?? '—',
             CashAdvanceLiquidation::class => $approvable->remarks ?? '—',
             CashAdvanceRefund::class => $approvable->purpose ?? '—',
+            sales_invoice::class => $approvable->remarks ?? '—',
+            collection::class => $approvable->remarks ?? '—',
+            credit_memo::class => $approvable->remarks ?: ($approvable->reason ?? '—'),
+            debit_memo::class => $approvable->remarks ?: ($approvable->reason ?? '—'),
             default => '—',
         };
     }
@@ -242,5 +280,10 @@ class approval_transaction extends Model
                 });
             })
             ->select('approval_transactions.*');
+    }
+
+    public function isPendingFor(User $user): bool
+    {
+        return static::pendingFor($user)->whereKey($this->getKey())->exists();
     }
 }

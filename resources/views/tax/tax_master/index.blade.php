@@ -191,6 +191,7 @@
                         <th scope="col" class="px-4 py-3 text-left w-[80px]">Rate</th>
                         <th scope="col" class="px-4 py-3 text-left w-[80px]">Fixed Amount</th>
                         <th scope="col" class="px-4 py-3 text-left w-[120px]">GL Account Code</th>
+                        <th scope="col" class="px-4 py-3 text-left w-[100px]">Direction</th>
                         <th scope="col" class="px-4 py-3 text-left w-[100px]">Status</th>
                         <th scope="col" class="px-4 py-3 text-center w-[50px]">Actions</th>
                     </tr>
@@ -210,6 +211,19 @@
                             </td>
                             <td class="px-4 py-3 w-[120px]">
                                 {{ $taxMaster->glAccount?->getFormattedAccountCodeAttribute() ?? '-' }}</td>
+                            <td class="px-4 py-3 w-[100px]">
+                                @php
+                                    $dir = $taxMaster->direction ?? 'both';
+                                    $dirBadge = match ($dir) {
+                                        'output' => 'bg-blue-100 text-blue-700',
+                                        'input' => 'bg-orange-100 text-orange-700',
+                                        default => 'bg-gray-100 text-gray-600',
+                                    };
+                                @endphp
+                                <span class="px-2 py-1 text-xs rounded-full {{ $dirBadge }}">
+                                    {{ ucfirst($dir) }}
+                                </span>
+                            </td>
                             <td class="px-4 py-3 w-[100px] text-xs font-semibold">
                                 @php
                                     $statuses = [
@@ -237,6 +251,7 @@
                                         data-fixed_amount="{{ $taxMaster->fixed_amount }}"
                                         data-gl_account_id="{{ $taxMaster->gl_account_id }}"
                                         data-recoverable="{{ $taxMaster->recoverable }}"
+                                        data-direction="{{ $taxMaster->direction }}"
                                         data-priority="{{ $taxMaster->priority }}"
                                         data-effective_from="{{ $taxMaster->effective_from }}"
                                         data-effective_to="{{ $taxMaster->effective_to }}"
@@ -256,7 +271,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-gray-500">
+                            <td colspan="10" class="px-4 py-6 text-center text-gray-500">
                                 <img src="{{ asset('images/tax-master.svg') }}" alt="No data"
                                     class="mx-auto mb-4 w-24 h-28">
                                 No tax masters found. Click here to <a href="#" data-modal-target="add-modal"
@@ -421,6 +436,22 @@
                                     class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
                                 <label for="recoverable"
                                     class="block text-xs font-medium text-gray-900 dark:text-white ml-2">Recoverable</label>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="direction"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Direction*</label>
+                                <select id="direction" name="direction"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    required>
+                                    <option value="output" @selected(old('direction') === 'output')>Output (sales — VAT Payable)
+                                    </option>
+                                    <option value="input" @selected(old('direction') === 'input')>Input (purchases — VAT Receivable)
+                                    </option>
+                                    <option value="both" @selected(old('direction', 'both') === 'both')>Both / general</option>
+                                </select>
+                                <p class="mt-1 text-[11px] text-gray-400">
+                                    Sales invoices only offer Output and Both taxes.
+                                </p>
                             </div>
 
                         </div>
@@ -592,6 +623,17 @@
                                 <label for="edit_recoverable"
                                     class="block text-xs font-medium text-gray-900 dark:text-white ml-2">Recoverable</label>
                             </div>
+                            <div class="sm:col-span-2">
+                                <label for="edit_direction"
+                                    class="block text-xs font-medium text-gray-900 dark:text-white">Direction*</label>
+                                <select id="edit_direction" name="edit_direction"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                                    required>
+                                    <option value="output">Output (sales — VAT Payable)</option>
+                                    <option value="input">Input (purchases — VAT Receivable)</option>
+                                    <option value="both">Both / general</option>
+                                </select>
+                            </div>
                         </div>
 
                         <button type="submit"
@@ -657,6 +699,7 @@
             document.getElementById('edit_rate').value = button.getAttribute('data-rate');
             document.getElementById('edit_fixed_amount').value = button.getAttribute('data-fixed_amount');
             document.getElementById('edit_recoverable').value = button.getAttribute('data-recoverable');
+            document.getElementById('edit_direction').value = button.getAttribute('data-direction') || 'both';
             document.getElementById('edit_gl_account_id').value = button.getAttribute('data-gl_account_id');
             document.getElementById('edit_effective_from').value = formatDateForInput(button.getAttribute(
                 'data-effective_from'));

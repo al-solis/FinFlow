@@ -24,9 +24,11 @@ use App\Models\CashAdvanceRefund;
 use App\Models\ReimbursementDetail;
 use App\Models\ap_payment as ApPayment;
 use App\Services\EmployeeVendorService;
+use App\Services\Concerns\PostsAccountsReceivable;
 
 class AccountingService
 {
+    use PostsAccountsReceivable;
     protected EmployeeVendorService $employeeVendorService;
 
     public function __construct()
@@ -50,7 +52,7 @@ class AccountingService
                 'journal_no' => $this->nextNumber('GJ', gl_journal::class),
                 'journal_date' => now()->toDateString(),
                 'source_module' => 'rfd',
-                'journal_type' => 'approval_posting',
+                'journal_type' => 'rfd',
                 'reference_type' => rfd_header::class,
                 'reference_id' => $rfd->id,
                 'description' => 'RFD-' . str_pad($rfd->id, 6, '0', STR_PAD_LEFT) . ' approved — ' . $rfd->remarks,

@@ -30,6 +30,28 @@
                 </div>
             </div>
         @endif
+        @if (session('error'))
+            <div id="error-alert"
+                class="mt-3 mb-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 shadow-sm transition-all duration-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="h-4 w-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        {{ session('error') }}
+                    </div>
+                    <button type="button" onclick="this.closest('[id$=-alert]').style.display='none'"
+                        class="text-red-600 hover:text-red-800">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        @endif
 
         <div class="mt-5 mb-5 bg-white rounded-xl shadow-sm border border-gray-200">
 
@@ -158,7 +180,7 @@
                                 <!-- Actions -->
                                 <td class="px-3 py-1.5 text-center">
                                     @if (in_array($rfd->approval_status, ['draft', 'returned', '0', '4']))
-                                        <a href="{{ route('ap.rfd.edit', $rfd) }}" title="Edit RFD"
+                                        <a href="{{ signed_url('ap.rfd.edit', ['rfd' => $rfd], 1) }}" title="Edit RFD"
                                             class="text-gray-500 hover:text-blue-600 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                                 fill="currentColor" viewBox="0 0 16 16">
@@ -758,7 +780,7 @@
 
                                 @if (in_array($rfd->approval_status, ['draft', 'returned', '0', '4']))
                                     <div class="mt-6 border-t border-gray-200 pt-4">
-                                        <a href="{{ route('ap.rfd.edit', $rfd->id) }}"
+                                        <a href="{{ signed_url('ap.rfd.edit', ['rfd' => $rfd->id], 1) }}"
                                             class="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
                                             Edit RFD
                                             <svg class="ms-2 h-4 w-4" fill="none" stroke="currentColor"

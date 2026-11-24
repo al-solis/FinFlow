@@ -183,4 +183,5 @@ trait AuthorizesAccessRights
     {
         $this->authorizeUpdate(Modules::GL, Modules::GL_JOURNAL);
     }
+
 }

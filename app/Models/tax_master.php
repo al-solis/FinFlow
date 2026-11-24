@@ -23,12 +23,18 @@ class tax_master extends Model
         // 'gl_account_code',
         'gl_account_id',
         'recoverable',
+        'direction',
+        'is_system',
         'priority',
         'effective_from',
         'effective_to',
         'status',
         'created_by',
         'updated_by'
+    ];
+
+    protected $casts = [
+        'is_system' => 'boolean',
     ];
 
     public function organization()

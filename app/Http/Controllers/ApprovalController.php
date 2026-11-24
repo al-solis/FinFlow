@@ -5,17 +5,21 @@ namespace App\Http\Controllers;
 use App\Constants\Modules;
 use App\Services\AuthorizationService;
 use App\Services\SystemSettings;
+use App\Traits\AuthorizesAccessRights;
+use App\Traits\WithSystemSettings;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\approval_transaction;
 use App\Models\rfd_header;
 use App\Models\CashAdvance;
 use App\Models\CashAdvanceLiquidation;
 use App\Models\CashAdvanceRefund;
 use App\Models\gl_journal;
-use App\Traits\AuthorizesAccessRights;
-use App\Traits\WithSystemSettings;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Models\sales_invoice;
+use App\Models\collection;
+use App\Models\credit_memo;
+use App\Models\debit_memo;
 
 
 class ApprovalController extends Controller
@@ -57,6 +61,10 @@ class ApprovalController extends Controller
                         CashAdvanceLiquidation::class => ['cashAdvance', 'employee', 'creator'],
                         CashAdvanceRefund::class => ['employee', 'creator'],
                         gl_journal::class => ['creator'],
+                        sales_invoice::class => ['creator'],
+                        collection::class => ['customer', 'creator'],
+                        credit_memo::class => ['creator', 'customer'],
+                        debit_memo::class => ['creator', 'customer'],
                     ]);
                 }
             ])
@@ -76,13 +84,15 @@ class ApprovalController extends Controller
      */
     private function getTotalRequests(): int
     {
-        $rfdCount = rfd_header::count();
-        $caCount = CashAdvance::count();
-        $liquidationCount = CashAdvanceLiquidation::count();
-        $refundCount = CashAdvanceRefund::count();
-        $journalCount = gl_journal::count();
-
-        return $rfdCount + $caCount + $liquidationCount + $refundCount + $journalCount;
+        return rfd_header::count()
+            + CashAdvance::count()
+            + CashAdvanceLiquidation::count()
+            + CashAdvanceRefund::count()
+            + gl_journal::count()
+            + sales_invoice::count()
+            + collection::count()
+            + credit_memo::count()
+            + debit_memo::count();
     }
 
     /**
@@ -96,6 +106,10 @@ class ApprovalController extends Controller
             CashAdvanceLiquidation::class => 'Liquidation',
             CashAdvanceRefund::class => 'Refund',
             gl_journal::class => 'Journal Entry',
+            sales_invoice::class => 'Sales Invoice',
+            collection::class => 'Collection',
+            credit_memo::class => 'Credit Memo',
+            debit_memo::class => 'Debit Memo',
         ];
 
         return $map[$type] ?? 'Unknown';
@@ -112,6 +126,10 @@ class ApprovalController extends Controller
             CashAdvanceLiquidation::class => 'bg-green-50 text-green-700',
             CashAdvanceRefund::class => 'bg-orange-50 text-orange-700',
             gl_journal::class => 'bg-indigo-50 text-indigo-700',
+            sales_invoice::class => 'bg-cyan-50 text-cyan-700',
+            collection::class => 'bg-emerald-50 text-emerald-700',
+            credit_memo::class => 'bg-rose-50 text-rose-700',
+            debit_memo::class => 'bg-amber-50 text-amber-700',
         ];
 
         return $map[$type] ?? 'bg-gray-50 text-gray-700';

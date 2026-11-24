@@ -1,5 +1,4 @@
 <?php
-// app/Constants/Modules.php
 
 namespace App\Constants;
 
@@ -34,6 +33,18 @@ class Modules
     public const AP_DM = 'AP-DM';
     public const AP_CM = 'AP-CM';
     public const AP_PV = 'AP-PV';
+
+    // AR Sub-modules
+    public const AR_CUST = 'AR-CUST';
+    public const AR_CATG = 'AR-CATG';
+    public const AR_SER = 'AR-SER';
+    public const AR_INV = 'AR-INV';
+    public const AR_COL = 'AR-COL';
+    public const AR_CMEMO = 'AR-CMEMO';
+    public const AR_DMEMO = 'AR-DMEMO';
+    public const AR_WHT = 'AR-WHT';
+    public const AR_SETTINGS = 'AR-SETTINGS';
+
 
     // CM Sub-modules
     public const CM_CR = 'CM-CR';
@@ -86,6 +97,10 @@ class Modules
     // APPW Sub-modules
     public const APPW_APPR = 'APPW-APPR';
 
+    // MASTER Sub-modules
+    public const MASTER_ITEM = 'MASTER-ITEM';
+    public const MASTER_UOM = 'MASTER-UOM';
+
     // ==================== PERMISSIONS ====================
 
     public const PERMISSION_CREATE = 'can_create';
@@ -133,6 +148,17 @@ class Modules
             self::AP_DM => 'Debit Memo',
             self::AP_CM => 'Credit Memo',
             self::AP_PV => 'Payment Voucher',
+
+                // AR
+            self::AR_CUST => 'Customer Master',
+            self::AR_CATG => 'Customer Categories',
+            self::AR_SER => 'Invoice Series',
+            self::AR_INV => 'Sales Invoice',
+            self::AR_COL => 'Collections',
+            self::AR_CMEMO => 'Credit Memos',
+            self::AR_DMEMO => 'Debit Memos',
+            self::AR_SETTINGS => 'A/R Settings',
+
                 // CM
             self::CM_CR => 'Cash Receipt',
             self::CM_DV => 'Disbursement',
@@ -177,6 +203,9 @@ class Modules
             self::ADMIN_NUM => 'Number Series',
                 // APPW
             self::APPW_APPR => 'Approval Workflow',
+                //MASTER
+            self::MASTER_ITEM => 'Item Master',
+            self::MASTER_UOM => 'Units of Measure',
             default => $subModuleCode,
         };
     }

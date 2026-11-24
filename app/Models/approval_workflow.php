@@ -60,6 +60,10 @@ class approval_workflow extends Model
             'refund' => 'Refund Request',
             'reimbursement' => 'Reimbursement Request',
             'rfd' => 'Request for Disbursement',
+            'sales_invoice' => 'Sales Invoice',
+            'collection' => 'Collections',
+            'credit_memo' => 'Credit Memo',
+            'debit_memo' => 'Debit Memo',
         ];
     }
 

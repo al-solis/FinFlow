@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Modules;
 use App\Models\access_right;
 use App\Models\module;
 use App\Models\role;
 use App\Services\SystemSettings;
+use App\Traits\AuthorizesAccessRights;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 class AccessRightController extends Controller
 {
+    use AuthorizesAccessRights;
     private function getOrganizationId()
     {
         $settings = SystemSettings::get();
@@ -21,6 +24,8 @@ class AccessRightController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorizeRead(Modules::ADMIN, Modules::ADMIN_ACCESS);
+
         $roles = role::orderBy('name')->get();
 
         if ($roles->isEmpty()) {
@@ -50,6 +55,8 @@ class AccessRightController extends Controller
 
     public function update(Request $request)
     {
+        $this->authorizeUpdate(Modules::ADMIN, Modules::ADMIN_ACCESS);
+
         $validated = $request->validate([
             'role_id' => 'required|exists:roles,id',
             'rights' => 'nullable|array',

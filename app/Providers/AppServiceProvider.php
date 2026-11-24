@@ -9,6 +9,9 @@ use App\View\Composers\DashboardComposer;
 use App\Services\PiiMaskingService;
 use Illuminate\Support\Facades\Auth;
 use App\Models\approval_transaction;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Route;
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         View::composer('*', DashboardComposer::class);
 
         // PII Masking Blade Directive
